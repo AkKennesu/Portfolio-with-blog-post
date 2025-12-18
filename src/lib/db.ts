@@ -22,6 +22,7 @@ export async function initDb() {
     console.log("Postgres connection string missing, skipping table initialization");
     return;
   }
+  console.log("🔌 Initializing Database with postgres.js client...");
   try {
     // Create Blog Posts Table
     await sql`
