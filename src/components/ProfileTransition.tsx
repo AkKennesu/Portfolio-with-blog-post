@@ -72,7 +72,6 @@ interface ProfileTransitionProps {
 
 export default function ProfileTransition({ image1, image2, width = 600, height = 600 }: ProfileTransitionProps) {
     const containerRef = useRef<HTMLDivElement>(null)
-    const [debugMsg, setDebugMsg] = useState<string>("Initializing...")
 
     useEffect(() => {
         if (!containerRef.current) return
@@ -128,65 +127,62 @@ export default function ProfileTransition({ image1, image2, width = 600, height 
                 const maxDelayY = 0.125
                 const stretch = 0.11
 
+                const centroid = new THREE.Vector3()
+                const vBase = new THREE.Vector3()
+                const vOffset = new THREE.Vector3()
+
                 for (let i = 0; i < count; i += 3) {
-                    const c = new THREE.Vector3()
+                    centroid.set(0, 0, 0)
                     for (let j = 0; j < 3; j++) {
-                        c.x += positions[(i + j) * 3]
-                        c.y += positions[(i + j) * 3 + 1]
-                        c.z += positions[(i + j) * 3 + 2]
+                        centroid.x += positions[(i + j) * 3]
+                        centroid.y += positions[(i + j) * 3 + 1]
+                        centroid.z += positions[(i + j) * 3 + 2]
                     }
-                    c.divideScalar(3)
+                    centroid.divideScalar(3)
 
-                    const xNorm = (c.x + width / 2) / width
+                    const xNorm = (centroid.x + width / 2) / width
+                    const delayX = isEntry ? (1.0 - xNorm) * maxDelayX : xNorm * maxDelayX
+                    const yCenterNorm = (centroid.y / (height / 2))
+                    const delayY = (1.0 - Math.abs(yCenterNorm)) * maxDelayY
 
-                    let delayX, delayY
-                    if (isEntry) {
-                        delayX = (1.0 - xNorm) * maxDelayX
-                    } else {
-                        delayX = xNorm * maxDelayX
-                    }
-                    const yCenterNorm = (c.y / (height / 2))
-                    delayY = (1.0 - Math.abs(yCenterNorm)) * maxDelayY
-
-                    const duration = THREE.MathUtils.randFloat(minDuration, maxDuration)
+                    const duration = minDuration + Math.random() * (maxDuration - minDuration)
                     const delay = delayX + delayY + Math.random() * stretch * duration
 
                     for (let j = 0; j < 3; j++) {
                         const idx = i + j
-                        const px = positions[idx * 3]
-                        const py = positions[idx * 3 + 1]
-                        const pz = positions[idx * 3 + 2]
+                        const idx3 = idx * 3
+                        const px = positions[idx3]
+                        const py = positions[idx3 + 1]
+                        const pz = positions[idx3 + 2]
 
                         aDelay[idx] = delay
                         aDuration[idx] = duration
 
-                        const pVertex = new THREE.Vector3(px, py, pz)
-                        const pOffset = pVertex.clone()
+                        vBase.set(px, py, pz)
+                        vOffset.copy(vBase)
 
                         if (isEntry) {
-                            pOffset.sub(new THREE.Vector3(0, height, 0))
+                            vOffset.y -= height
                         } else {
-                            pOffset.add(new THREE.Vector3(0, height, 0))
+                            vOffset.y += height
                         }
 
                         if (isEntry) {
-                            aStartPosition[idx * 3] = pOffset.x; aStartPosition[idx * 3 + 1] = pOffset.y; aStartPosition[idx * 3 + 2] = pOffset.z
-                            aEndPosition[idx * 3] = pVertex.x; aEndPosition[idx * 3 + 1] = pVertex.y; aEndPosition[idx * 3 + 2] = pVertex.z
+                            aStartPosition[idx3] = vOffset.x; aStartPosition[idx3 + 1] = vOffset.y; aStartPosition[idx3 + 2] = vOffset.z
+                            aEndPosition[idx3] = vBase.x; aEndPosition[idx3 + 1] = vBase.y; aEndPosition[idx3 + 2] = vBase.z
                         } else {
-                            aStartPosition[idx * 3] = pVertex.x; aStartPosition[idx * 3 + 1] = pVertex.y; aStartPosition[idx * 3 + 2] = pVertex.z
-                            aEndPosition[idx * 3] = pOffset.x; aEndPosition[idx * 3 + 1] = pOffset.y; aEndPosition[idx * 3 + 2] = pOffset.z
+                            aStartPosition[idx3] = vBase.x; aStartPosition[idx3 + 1] = vBase.y; aStartPosition[idx3 + 2] = vBase.z
+                            aEndPosition[idx3] = vOffset.x; aEndPosition[idx3 + 1] = vOffset.y; aEndPosition[idx3 + 2] = vOffset.z
                         }
 
-                        const c0 = c.clone()
-                        const c1 = c.clone()
-                        if (isEntry) {
-                            c0.sub(new THREE.Vector3(0, height, 0))
-                        } else {
-                            c0.add(new THREE.Vector3(0, height, 0))
-                        }
+                        // Use centroid for controls
+                        aControl0[idx3] = isEntry ? centroid.x : centroid.x
+                        aControl0[idx3 + 1] = isEntry ? (centroid.y - height) : (centroid.y + height)
+                        aControl0[idx3 + 2] = centroid.z
 
-                        aControl0[idx * 3] = c0.x; aControl0[idx * 3 + 1] = c0.y; aControl0[idx * 3 + 2] = c0.z
-                        aControl1[idx * 3] = c1.x; aControl1[idx * 3 + 1] = c1.y; aControl1[idx * 3 + 2] = c1.z
+                        aControl1[idx3] = centroid.x
+                        aControl1[idx3 + 1] = centroid.y
+                        aControl1[idx3 + 2] = centroid.z
                     }
                 }
 
@@ -263,9 +259,6 @@ export default function ProfileTransition({ image1, image2, width = 600, height 
             }
 
             el.addEventListener('mouseenter', onEnter)
-            // No mouseleave listener -> Loop continues
-
-            setDebugMsg("Slide Effect Ready (Auto-Loop)")
 
             const animate = () => {
                 frameId = requestAnimationFrame(animate)
@@ -286,7 +279,6 @@ export default function ProfileTransition({ image1, image2, width = 600, height 
 
         } catch (e) {
             console.error(e)
-            setDebugMsg("Error: " + String(e))
         }
 
     }, [image1, image2, width, height])

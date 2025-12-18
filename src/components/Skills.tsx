@@ -1,6 +1,6 @@
 "use client"
 
-import { motion } from "framer-motion"
+import { motion, useInView, useScroll, useVelocity } from "framer-motion"
 import {
     SiNextdotjs, SiJavascript, SiReact, SiTypescript,
     SiPostgresql, SiFirebase, SiFramer, SiFigma, SiGit,
@@ -42,7 +42,7 @@ export function Skills() {
                 {/* Grid Container */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 max-w-6xl mx-auto">
                     {skills.map((skill, index) => (
-                        <SkillCard key={skill.name} skill={skill} index={index} />
+                        <SkillCard key={skill.name} skill={skill} index={index} totalSkills={skills.length} />
                     ))}
                 </div>
             </div>
@@ -50,9 +50,13 @@ export function Skills() {
     )
 }
 
-function SkillCard({ skill, index }: { skill: typeof skills[0], index: number }) {
+function SkillCard({ skill, index, totalSkills }: { skill: typeof skills[0], index: number, totalSkills: number }) {
     const [isFlipped, setIsFlipped] = useState(false)
     const timeoutRef = useRef<NodeJS.Timeout | null>(null)
+    const ref = useRef(null)
+    const isInView = useInView(ref, { amount: 0.5 })
+    const { scrollY } = useScroll()
+    const scrollVelocity = useVelocity(scrollY)
 
     const handleInteraction = () => {
         setIsFlipped((prev) => {
@@ -76,6 +80,32 @@ function SkillCard({ skill, index }: { skill: typeof skills[0], index: number })
     }
 
     useEffect(() => {
+        if (isInView) {
+            const velocity = scrollVelocity.get()
+            const isScrollingUp = velocity < 0
+            const finalIndex = isScrollingUp ? totalSkills - 1 - index : index
+            const delay = finalIndex * 100 // Stagger effect
+
+            const timer = setTimeout(() => {
+                setIsFlipped(true)
+
+                // Clear any existing timer
+                if (timeoutRef.current) {
+                    clearTimeout(timeoutRef.current)
+                }
+
+                // Schedule flip back
+                timeoutRef.current = setTimeout(() => {
+                    setIsFlipped(false)
+                }, 2000) // Keep icon visible for 2 seconds
+
+            }, delay)
+
+            return () => clearTimeout(timer)
+        }
+    }, [isInView, index, totalSkills, scrollVelocity])
+
+    useEffect(() => {
         return () => {
             if (timeoutRef.current) clearTimeout(timeoutRef.current)
         }
@@ -83,6 +113,7 @@ function SkillCard({ skill, index }: { skill: typeof skills[0], index: number })
 
     return (
         <div
+            ref={ref}
             className="h-20 w-full cursor-pointer"
             style={{ perspective: "1000px" }}
             onMouseEnter={handleInteraction}
@@ -91,7 +122,6 @@ function SkillCard({ skill, index }: { skill: typeof skills[0], index: number })
                 initial={false}
                 animate={{ rotateY: isFlipped ? 180 : 0 }}
                 transition={{ duration: 0.6, type: "spring", stiffness: 260, damping: 20 }}
-                viewport={{ once: true }}
                 className="relative h-full w-full"
                 style={{ transformStyle: "preserve-3d" }}
             >

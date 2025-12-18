@@ -29,7 +29,7 @@ export function Projects() {
                     </p>
                 </div>
 
-                <div className="relative group max-w-7xl mx-auto px-4 md:px-12">
+                <div className="relative max-w-7xl mx-auto px-4 md:px-12">
                     <div className="overflow-hidden" ref={emblaRef}>
                         <div className="flex touch-pan-y -ml-4">
                             {projects.map((project, index) => (
@@ -83,7 +83,7 @@ function ProjectCard({ project, index }: { project: typeof projects[0], index: n
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: index * 0.1 }}
             viewport={{ once: true }}
-            className={`card card--${(index % 3) + 1} w-full h-full`}
+            className="card w-full h-full"
         >
             <div className="card__info-hover">
                 <div className="card__clock-info">
@@ -93,9 +93,9 @@ function ProjectCard({ project, index }: { project: typeof projects[0], index: n
                     <span className="card__time">View Project</span>
                 </div>
             </div>
-            <div className="card__img"></div>
+            <div className="card__img" style={{ backgroundImage: `url(${project.image})`, visibility: 'visible' }}></div>
             <Link href={project.links.demo} className="card_link">
-                <div className="card__img--hover"></div>
+                <div className="card__img--hover" style={{ backgroundImage: `url(${project.image})` }}></div>
             </Link>
             <div className="card__info">
                 <span className="card__category">{project.tags[0]}</span>

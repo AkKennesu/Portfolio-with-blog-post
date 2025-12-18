@@ -86,9 +86,6 @@
     border-color: var(--border);
   }
 
-  html {
-    scroll-behavior: smooth;
-  }
 
   body {
     background-color: var(--background);
@@ -96,9 +93,6 @@
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
-  .text-glow {
-    text-shadow: 0 0 20px rgba(var(--primary), 0.5);
-  }
 
   .hoverText {
     transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.3s ease-out;
@@ -122,33 +116,6 @@
     font-weight: 500;
   }
 
-  /* Nav Link Pulse Line Effect */
-  .nav-pulse-line {
-    position: relative;
-    transition: all 0.45s;
-    /* Maintain spacing */
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .nav-pulse-line:hover {
-    /* The red line SVG from user request */
-    background: url("data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPHN2ZyB2ZXJzaW9uPSIxLjEi%0D%0AIGlkPSJMYXllcl8xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhs%0D%0AaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4PSIwcHgiIHk9IjBweCIKCSB3aWR0%0D%0AaD0iMzkwcHgiIGhlaWdodD0iNTBweCIgdmlld0JveD0iMCAwIDM5MCA1MCIgZW5hYmxlLWJhY2tn%0D%0Acm91bmQ9Im5ldyAwIDAgMzkwIDUwIiB4bWw6c3BhY2U9InByZXNlcnZlIj4KPHBhdGggZmlsbD0i%0D%0Abm9uZSIgc3Ryb2tlPSIjZDk0ZjVjIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLW1pdGVybGlt%0D%0AaXQ9IjEwIiBkPSJNMCw0Ny41ODVjMCwwLDk3LjUsMCwxMzAsMAoJYzEzLjc1LDAsMjguNzQtMzgu%0D%0ANzc4LDQ2LjE2OC0xOS40MTZDMTkyLjY2OSw0Ni41LDI0My42MDMsNDcuNTg1LDI2MCw0Ny41ODVj%0D%0AMzEuODIxLDAsMTMwLDAsMTMwLDAiLz4KPC9zdmc+Cg==");
-    background-repeat: no-repeat;
-    background-position: center bottom;
-    /* We use center bottom to align it with text */
-    animation: line 1s;
-    /* User wanted text color change too */
-    color: #d94f5c;
-  }
-
-  /* Keep the transition from the snippet */
-  @keyframes line {
-    0% {
-      background-position-x: 390px;
-    }
-  }
 
   /* Nav Link Custom Hover Effect */
   .nav-link-hover {
@@ -434,15 +401,6 @@
     flex-wrap: wrap;
   }
 
-  .card--1 .card__img,
-  .card--1 .card__img--hover {
-    background-image: url('https://images.pexels.com/photos/45202/brownie-dessert-cake-sweet-45202.jpeg?auto=compress&cs=tinysrgb&h=750&w=1260');
-  }
-
-  .card--2 .card__img,
-  .card--2 .card__img--hover {
-    background-image: url('https://images.pexels.com/photos/307008/pexels-photo-307008.jpeg?auto=compress&cs=tinysrgb&h=750&w=1260');
-  }
 
   .card__like {
     width: 18px;
@@ -467,6 +425,7 @@
   }
 
   .card__img {
+    transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
     visibility: hidden;
     background-size: cover;
     background-position: center;
@@ -475,7 +434,6 @@
     height: 235px;
     border-top-left-radius: 12px;
     border-top-right-radius: 12px;
-
   }
 
   .card__info-hover {
@@ -487,7 +445,7 @@
   }
 
   .card__img--hover {
-    transition: 0.2s all ease-out;
+    transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -497,19 +455,28 @@
     border-top-left-radius: 12px;
     border-top-right-radius: 12px;
     top: 0;
-
+    filter: brightness(1);
   }
 
   .card {
     margin-bottom: 25px;
-    transition: all .4s cubic-bezier(0.175, 0.885, 0, 1);
+    transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
     background: rgba(255, 255, 255, 0.05);
+    /* Original 0.05 */
     backdrop-filter: blur(10px);
+    /* Original 10px */
     border: 1px solid rgba(255, 255, 255, 0.1);
+    /* Original border */
     position: relative;
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0px 13px 10px -7px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Removed explicit dark mode override to match original behavior or keep it simple */
+  .dark .card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
   }
 
   .card:hover {
@@ -524,7 +491,8 @@
     border-bottom-left-radius: 12px;
     border-bottom-right-radius: 12px;
     padding: 16px 24px 24px 24px;
-    color: #fff;
+    color: var(--foreground);
+    /* Changed from #fff to var(--foreground) */
   }
 
   .card__category {
@@ -533,7 +501,8 @@
     font-size: 13px;
     letter-spacing: 2px;
     font-weight: 500;
-    color: #e0e0e0;
+    color: var(--muted-foreground);
+    /* Changed from #e0e0e0 */
   }
 
   .card__title {
@@ -541,7 +510,8 @@
     margin-bottom: 10px;
     font-family: inherit;
     font-weight: bold;
-    color: #fff;
+    color: var(--foreground);
+    /* Changed from #fff */
   }
 
   .card__by {
@@ -558,11 +528,18 @@
 
   .card:hover .card__img--hover {
     height: 100%;
-    opacity: 0.3;
+    opacity: 0.4;
+    filter: brightness(1.2) blur(2px);
+  }
+
+  .card:hover .card__img {
+    opacity: 0;
+    filter: blur(10px);
   }
 
   .card:hover .card__info {
     background-color: transparent;
+    /* Revert to transparent */
     position: relative;
   }
 
