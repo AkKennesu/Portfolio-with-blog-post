@@ -1,7 +1,6 @@
 "use client"
 
 import Link from "next/link"
-import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 import { Download } from "lucide-react"
 import { ModeToggle } from "./mode-toggle"

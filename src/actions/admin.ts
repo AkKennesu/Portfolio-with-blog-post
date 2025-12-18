@@ -2,7 +2,6 @@
 
 import { cookies } from "next/headers"
 import { SignJWT, jwtVerify } from "jose"
-import bcrypt from "bcryptjs"
 import { sql } from "@/lib/db"
 import { redirect } from "next/navigation"
 import { revalidatePath } from "next/cache"
@@ -63,7 +62,7 @@ export async function getSession() {
             algorithms: ["HS256"],
         })
         return payload
-    } catch (error) {
+    } catch {
         return null
     }
 }

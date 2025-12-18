@@ -26,7 +26,7 @@ export function Contact() {
                     <div>
                         <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl mb-4">Get in Touch</h2>
                         <p className="text-muted-foreground text-lg mb-8">
-                            Interested in working together? Have a question? Send me a message and I'll get back to you as soon as possible.
+                            Interested in working together? Have a question? Send me a message and I&apos;ll get back to you as soon as possible.
                         </p>
 
                         <div className="flex flex-col gap-4">

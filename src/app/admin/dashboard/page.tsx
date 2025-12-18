@@ -19,7 +19,7 @@ export default async function AdminDashboardPage() {
             blogCount = parseInt(blogRes.rows[0].count)
             certCount = parseInt(certRes.rows[0].count)
         }
-    } catch (e) {
+    } catch {
         // Tables might not exist yet if not initialized
     }
 

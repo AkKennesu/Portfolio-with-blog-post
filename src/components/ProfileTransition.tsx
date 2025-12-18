@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef } from "react"
 import * as THREE from "three"
 import gsap from "gsap"
 
@@ -258,7 +258,7 @@ export default function ProfileTransition({ image1, image2, width = 600, height 
                 }
             }
 
-            el.addEventListener('mouseenter', onEnter)
+            if (el) el.addEventListener('mouseenter', onEnter)
 
             const animate = () => {
                 frameId = requestAnimationFrame(animate)
@@ -268,17 +268,19 @@ export default function ProfileTransition({ image1, image2, width = 600, height 
 
             return () => {
                 cancelAnimationFrame(frameId)
-                el.removeEventListener('mouseenter', onEnter)
+                if (el) {
+                    el.removeEventListener('mouseenter', onEnter)
+                    el.innerHTML = ''
+                }
                 renderer.dispose()
                 geo1.dispose()
                 geo2.dispose()
                 mat1.dispose()
                 mat2.dispose()
-                if (containerRef.current) containerRef.current.innerHTML = ''
             }
 
-        } catch (e) {
-            console.error(e)
+        } catch {
+            // handle error
         }
 
     }, [image1, image2, width, height])

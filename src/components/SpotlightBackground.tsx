@@ -2,7 +2,6 @@
 
 import { motion, useMotionTemplate, useMotionValue } from "framer-motion"
 import { useEffect } from "react"
-import { cn } from "@/lib/utils"
 
 export function SpotlightBackground() {
     const mouseX = useMotionValue(0)

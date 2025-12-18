@@ -1,7 +1,7 @@
 "use client"
 
 import { motion, AnimatePresence } from "framer-motion"
-import { educationItems, achievementItems } from "@/lib/data"
+import { educationItems } from "@/lib/data"
 import useEmblaCarousel from "embla-carousel-react"
 import Autoplay from "embla-carousel-autoplay"
 import { useCallback, useState } from "react"
@@ -189,50 +189,3 @@ function AchievementCard({ item, onClick }: { item: Certificate, onClick: () => 
     )
 }
 
-function TimelineSection({
-    id,
-    title,
-    description,
-    items,
-    className
-}: {
-    id: string,
-    title: string,
-    description: string,
-    items: typeof educationItems,
-    className?: string
-}) {
-    return (
-        <div id={id} className={`max-w-7xl mx-auto ${className || ""}`}>
-            <div className="flex flex-col items-center text-center mb-12">
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl mb-4">{title}</h2>
-                <p className="text-muted-foreground max-w-[800px]">
-                    {description}
-                </p>
-            </div>
-
-            <div className="max-w-3xl mx-auto">
-                {items.map((item, index) => (
-                    <motion.div
-                        key={index}
-                        initial={{ opacity: 0, x: -20 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                        viewport={{ once: true }}
-                        className="relative pl-8 pb-12 last:pb-0 border-l border-border"
-                    >
-                        <div className="absolute left-[-5px] top-0 h-2.5 w-2.5 rounded-full bg-primary" />
-                        <div className="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-4 mb-1">
-                            <span className="text-sm font-bold text-primary">{item.year}</span>
-                            <h3 className="text-lg font-semibold">{item.title}</h3>
-                        </div>
-                        <p className="text-sm font-medium text-muted-foreground mb-2">{item.subtitle}</p>
-                        <p className="text-muted-foreground leading-relaxed">
-                            {item.description}
-                        </p>
-                    </motion.div>
-                ))}
-            </div>
-        </div>
-    )
-}

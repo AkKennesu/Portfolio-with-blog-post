@@ -3,7 +3,6 @@
 import { motion } from "framer-motion"
 import Link from "next/link"
 import { ArrowRight, Mail, Download } from "lucide-react"
-import { cn } from "@/lib/utils"
 import { EncryptButton } from "@/components/EncryptButton"
 import BubbleText from "./BubbleText"
 

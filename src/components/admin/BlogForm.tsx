@@ -1,14 +1,11 @@
 "use client"
 
-import { useActionState, useEffect } from "react"
 import { createPost, updatePost } from "@/actions/blog"
 import { type Post } from "@/lib/blog"
-import { ArrowLeft, Save } from "lucide-react"
+import { Save } from "lucide-react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 
 export function BlogForm({ post }: { post?: Post }) {
-    const router = useRouter()
 
     // Determine which action to use
     const action = post?.id

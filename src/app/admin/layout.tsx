@@ -1,7 +1,6 @@
 import { getSession } from "@/actions/admin"
-import { redirect } from "next/navigation"
 import Link from "next/link"
-import { LayoutDashboard, FileText, Award, LogOut, ExternalLink } from "lucide-react"
+import { LayoutDashboard, FileText, Award, ExternalLink } from "lucide-react"
 
 export default async function AdminLayout({
     children,
