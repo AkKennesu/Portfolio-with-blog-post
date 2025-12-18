@@ -1,4 +1,21 @@
-import { sql } from "@vercel/postgres";
+import postgres from "postgres";
+
+// Use postgres.js client which works with standard Postgres protocols (Supabase, Neon, etc.)
+const connectionString = process.env.POSTGRES_URL || "";
+
+const sqlClient = postgres(connectionString, {
+  ssl: "require",
+  // For serverless, we want to close connections quickly
+  idle_timeout: 20,
+  max_lifetime: 60 * 30,
+});
+
+// Create a wrapper to mimic @vercel/postgres { rows } structure 
+// to avoid refactoring every single query call in the app
+export const sql = async (strings: TemplateStringsArray, ...values: any[]) => {
+  const result = await sqlClient(strings, ...values);
+  return { rows: result };
+};
 
 export async function initDb() {
   if (!process.env.POSTGRES_URL) {
@@ -64,5 +81,3 @@ export async function checkTablesExist() {
     return false;
   }
 }
-
-export { sql };

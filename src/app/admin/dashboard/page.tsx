@@ -13,11 +13,11 @@ export default async function AdminDashboardPage() {
 
     try {
         if (process.env.POSTGRES_URL) {
-            const blogRes = await sql`SELECT count(*) FROM blog_posts`
-            const certRes = await sql`SELECT count(*) FROM certificates`
+            const { rows: blogRows } = await sql`SELECT count(*) FROM blog_posts`
+            const { rows: certRows } = await sql`SELECT count(*) FROM certificates`
 
-            blogCount = parseInt(blogRes.rows[0].count)
-            certCount = parseInt(certRes.rows[0].count)
+            blogCount = Number(blogRows[0].count)
+            certCount = Number(certRows[0].count)
         }
     } catch {
         // Tables might not exist yet if not initialized

@@ -83,11 +83,11 @@ export async function migrateData() {
     // Migrate Certificates
     for (const cert of achievementItems) {
         // Simple duplicate check for certificates (by title and year)
-        const exists = await sql`
+        const { rows: existsRows } = await sql`
             SELECT id FROM certificates 
             WHERE title = ${cert.title} AND year = ${cert.year}
         `
-        if (exists.rows.length === 0) {
+        if (existsRows.length === 0) {
             await sql`
                 INSERT INTO certificates (year, title, subtitle, description, image)
                 VALUES (${cert.year}, ${cert.title}, ${cert.subtitle}, ${cert.description}, ${cert.image})

@@ -51,7 +51,7 @@ export async function getPosts(): Promise<Post[]> {
       return posts;
     }
     const { rows } = await sql`SELECT * FROM blog_posts ORDER BY date DESC`
-    if (rows.length > 0) return rows as Post[]
+    if (rows.length > 0) return rows as unknown as Post[]
   } catch (error) {
     console.error("Failed to fetch posts from DB, using fallback data", error)
   }
@@ -64,7 +64,7 @@ export async function getPost(slug: string): Promise<Post | undefined> {
       return posts.find((p) => p.slug === slug);
     }
     const { rows } = await sql`SELECT * FROM blog_posts WHERE slug = ${slug}`
-    if (rows.length > 0) return rows[0] as Post
+    if (rows.length > 0) return rows[0] as unknown as Post
   } catch (error) {
     console.error(`Failed to fetch post ${slug} from DB, using fallback data`, error)
   }
