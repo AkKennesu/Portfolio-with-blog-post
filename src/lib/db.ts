@@ -49,4 +49,20 @@ export async function initDb() {
   }
 }
 
+export async function checkTablesExist() {
+  if (!process.env.POSTGRES_URL) return false;
+  try {
+    const { rows } = await sql`
+      SELECT tablename 
+      FROM pg_catalog.pg_tables 
+      WHERE schemaname != 'pg_catalog' 
+      AND schemaname != 'information_schema'
+      AND tablename IN ('blog_posts', 'certificates')
+    `;
+    return rows.length >= 2;
+  } catch {
+    return false;
+  }
+}
+
 export { sql };
