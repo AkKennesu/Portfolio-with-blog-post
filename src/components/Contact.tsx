@@ -1,41 +1,23 @@
 "use client"
 
-import { useState, FormEvent } from "react"
+import { useActionState, useEffect, useRef } from "react"
 import { motion } from "framer-motion"
 import { Github, Twitter, Linkedin, Mail, Send } from "lucide-react"
-import Link from "next/link"
 import { EncryptButton } from "@/components/EncryptButton"
 import { SocialLink } from "@/components/SocialLink"
+import { submitContact, type ContactState } from "@/actions/contact"
+
+const initialState: ContactState = {}
 
 export function Contact() {
-    const [loading, setLoading] = useState(false)
-    const [success, setSuccess] = useState(false)
+    const [state, formAction, isPending] = useActionState(submitContact, initialState)
+    const formRef = useRef<HTMLFormElement>(null)
 
-    async function handleSubmit(e: FormEvent<HTMLFormElement>) {
-        e.preventDefault()
-        setLoading(true)
-
-        // Simulate API call
-        const formData = new FormData(e.currentTarget)
-        const data = Object.fromEntries(formData.entries())
-
-        try {
-            const response = await fetch('/api/contact', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data),
-            })
-
-            if (response.ok) {
-                setSuccess(true)
-                // Reset form or show success message
-            }
-        } catch (error) {
-            console.error('Submission failed', error)
-        } finally {
-            setLoading(false)
+    useEffect(() => {
+        if (state.success) {
+            formRef.current?.reset()
         }
-    }
+    }, [state.success])
 
     return (
         <section id="contact" className="py-24 sm:py-32 bg-muted/50">
@@ -48,7 +30,6 @@ export function Contact() {
                         </p>
 
                         <div className="flex flex-col gap-4">
-
                             <div className="flex gap-4 mt-4">
                                 <SocialLink href="#" icon={Github} color="#333333" label="GitHub" />
                                 <SocialLink href="#" icon={Twitter} color="#1DA1F2" label="Twitter" />
@@ -59,7 +40,8 @@ export function Contact() {
                     </div>
 
                     <motion.form
-                        onSubmit={handleSubmit}
+                        ref={formRef}
+                        action={formAction}
                         initial={{ opacity: 0, x: 20 }}
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true }}
@@ -71,6 +53,7 @@ export function Contact() {
                                 id="name"
                                 name="name"
                                 required
+                                defaultValue={state.fields?.name}
                                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                 placeholder="John Doe"
                             />
@@ -82,6 +65,7 @@ export function Contact() {
                                 name="email"
                                 type="email"
                                 required
+                                defaultValue={state.fields?.email}
                                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                 placeholder="john@example.com"
                             />
@@ -92,15 +76,21 @@ export function Contact() {
                                 id="message"
                                 name="message"
                                 required
+                                defaultValue={state.fields?.message}
                                 className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                 placeholder="Tell me about your project..."
                             />
                         </div>
+
+                        {state.error && (
+                            <p className="text-sm font-medium text-destructive">{state.error}</p>
+                        )}
+
                         <div className="flex justify-end">
                             <EncryptButton
                                 type="submit"
-                                disabled={loading || success}
-                                targetText={success ? "Message Sent!" : loading ? "Sending..." : "Send Message"}
+                                disabled={isPending || state.success}
+                                targetText={state.success ? "Message Sent!" : isPending ? "Sending..." : "Send Message"}
                                 icon={Send}
                                 className="w-full sm:w-auto"
                             />

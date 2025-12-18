@@ -3,8 +3,8 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
 
-export function generateStaticParams() {
-    const posts = getPosts()
+export async function generateStaticParams() {
+    const posts = await getPosts()
     return posts.map((post) => ({
         slug: post.slug,
     }))
@@ -16,7 +16,7 @@ export default async function BlogPostPage({
     params: Promise<{ slug: string }>
 }) {
     const { slug } = await params
-    const post = getPost(slug)
+    const post = await getPost(slug)
 
     if (!post) {
         notFound()

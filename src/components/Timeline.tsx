@@ -8,8 +8,10 @@ import { useCallback, useState } from "react"
 import { ChevronLeft, ChevronRight, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
-export function Timeline() {
-    const [selectedImage, setSelectedImage] = useState<string | null>(null)
+import { type Certificate } from "@/lib/certificates"
+
+export function Timeline({ certificates }: { certificates: Certificate[] }) {
+    const [selectedCertificate, setSelectedCertificate] = useState<Certificate | null>(null)
 
     return (
         <section id="education" className="py-24 sm:py-32 bg-muted/50 overflow-hidden">
@@ -51,35 +53,48 @@ export function Timeline() {
                         Professional certifications and notable achievement milestones.
                     </p>
                 </div>
-                <AchievementCarousel onImageClick={setSelectedImage} />
+                <AchievementCarousel certificates={certificates} onCardClick={setSelectedCertificate} />
             </div>
 
             <AnimatePresence>
-                {selectedImage && (
+                {selectedCertificate && (
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        onClick={() => setSelectedImage(null)}
-                        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4 md:p-10 cursor-zoom-out"
+                        onClick={() => setSelectedCertificate(null)}
+                        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 p-4 md:p-10 cursor-zoom-out"
                     >
                         <motion.button
                             initial={{ scale: 0.5, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0.5, opacity: 0 }}
                             className="absolute top-6 right-6 text-white bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors z-[110]"
-                            onClick={() => setSelectedImage(null)}
+                            onClick={() => setSelectedCertificate(null)}
                         >
                             <X className="w-6 h-6" />
                         </motion.button>
-                        <motion.img
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.9, opacity: 0 }}
-                            src={selectedImage}
-                            className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
-                            alt="Certificate Full View"
-                        />
+
+                        <div className="relative max-w-5xl w-full h-[80vh] flex flex-col items-center justify-center gap-6" onClick={(e) => e.stopPropagation()}>
+                            <motion.img
+                                initial={{ scale: 0.9, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                exit={{ scale: 0.9, opacity: 0 }}
+                                src={selectedCertificate.image}
+                                className="max-w-full max-h-[70%] object-contain rounded-lg shadow-2xl"
+                                alt={selectedCertificate.title}
+                            />
+                            <motion.div
+                                initial={{ y: 20, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                exit={{ y: 20, opacity: 0 }}
+                                className="text-center bg-background/20 backdrop-blur-md p-6 rounded-xl border border-white/10 max-w-2xl"
+                            >
+                                <h2 className="text-2xl font-bold text-white mb-1">{selectedCertificate.title}</h2>
+                                <h3 className="text-primary font-medium mb-3">{selectedCertificate.subtitle} ({selectedCertificate.year})</h3>
+                                <p className="text-gray-300 leading-relaxed">{selectedCertificate.description}</p>
+                            </motion.div>
+                        </div>
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -87,7 +102,7 @@ export function Timeline() {
     )
 }
 
-function AchievementCarousel({ onImageClick }: { onImageClick: (img: string) => void }) {
+function AchievementCarousel({ certificates, onCardClick }: { certificates: Certificate[], onCardClick: (item: Certificate) => void }) {
     const [emblaRef, emblaApi] = useEmblaCarousel(
         { align: "start", loop: true },
         [Autoplay({ delay: 5000, stopOnInteraction: false })]
@@ -102,12 +117,12 @@ function AchievementCarousel({ onImageClick }: { onImageClick: (img: string) => 
     }, [emblaApi])
 
     return (
-        <div className="relative group max-w-7xl mx-auto px-4 md:px-12">
+        <div className="relative max-w-7xl mx-auto px-4 md:px-12">
             <div className="overflow-hidden" ref={emblaRef}>
                 <div className="flex touch-pan-y -ml-4">
-                    {achievementItems.map((item, index) => (
+                    {certificates.map((item, index) => (
                         <div className="flex-[0_0_100%] md:flex-[0_0_50%] lg:flex-[0_0_33.333%] min-w-0 pl-4 py-4" key={index}>
-                            <AchievementCard item={item} onClick={() => onImageClick(item.image)} />
+                            <AchievementCard item={item} onClick={() => onCardClick(item)} />
                         </div>
                     ))}
                 </div>
@@ -146,7 +161,7 @@ function AchievementCarousel({ onImageClick }: { onImageClick: (img: string) => 
     )
 }
 
-function AchievementCard({ item, onClick }: { item: typeof achievementItems[0], onClick: () => void }) {
+function AchievementCard({ item, onClick }: { item: Certificate, onClick: () => void }) {
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}

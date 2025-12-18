@@ -3,9 +3,9 @@
 import { useRouter } from "next/navigation"
 import { ArrowRight } from "lucide-react"
 import { EncryptButton } from "@/components/EncryptButton"
-import { blogPosts } from "@/lib/data"
+import { type Post } from "@/lib/blog"
 
-export function BlogPreview() {
+export function BlogPreview({ posts }: { posts: Post[] }) {
     const router = useRouter()
 
     return (
@@ -19,11 +19,11 @@ export function BlogPreview() {
                 </div>
 
                 <div className="flex flex-wrap justify-center mb-12">
-                    {blogPosts.map((post, index) => (
+                    {posts.map((post, index) => (
                         <div key={index} className={`blog-box card-${index % 3}`}>
                             <span></span>
                             <div className="blog-content">
-                                <h2>{post.category}</h2>
+                                <h2 className="uppercase text-[10px] tracking-widest text-primary font-bold mb-2">Insight</h2>
                                 <p>{post.title.substring(0, 50)}...</p>
                                 <a href={`/blog/${post.slug}`}>Read More</a>
                             </div>
