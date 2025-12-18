@@ -1,4 +1,4 @@
-import { Home, User, Code, Folder, GraduationCap, BookOpen, Mail, Trophy } from "lucide-react";
+import { Home, User, Code, Folder, GraduationCap, BookOpen, Mail } from "lucide-react";
 
 export const navItems = [
     { name: "Home", href: "/", icon: Home },
