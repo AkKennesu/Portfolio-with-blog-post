@@ -1,4 +1,4 @@
-import { getSession, migrateData } from "@/actions/admin"
+import { getSession, migrateData, initializeDatabase } from "@/actions/admin"
 import { redirect } from "next/navigation"
 import { sql } from "@/lib/db"
 import { FileText, Award, MessageSquare, Database, RefreshCw } from "lucide-react"
@@ -56,13 +56,9 @@ export default async function AdminDashboardPage() {
                         <h2 className="text-xl font-semibold">Database Setup</h2>
                     </div>
                     <p className="text-muted-foreground mb-6">
-                        Initialize the database tables for the first time on Vercel.
+                        Initialize the database tables for the first time.
                     </p>
-                    <form action={async () => {
-                        "use server"
-                        const { initDb } = await import("@/lib/db")
-                        await initDb()
-                    }}>
+                    <form action={initializeDatabase}>
                         <button type="submit" className="w-full bg-primary text-primary-foreground px-4 py-2 rounded-lg font-medium hover:bg-primary/90 transition-colors">
                             Initialize Tables
                         </button>

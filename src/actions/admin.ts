@@ -98,3 +98,8 @@ export async function migrateData() {
     revalidatePath("/admin/dashboard")
     redirect("/admin/dashboard")
 }
+export async function initializeDatabase() {
+    const { initDb } = await import("@/lib/db")
+    await initDb()
+    revalidatePath("/admin/dashboard")
+}
