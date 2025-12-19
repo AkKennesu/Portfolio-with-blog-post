@@ -2,7 +2,7 @@
 
 import { cookies } from "next/headers"
 import { SignJWT, jwtVerify } from "jose"
-import { sql } from "@/lib/db"
+import { dbQuery } from "@/lib/db"
 import { redirect } from "next/navigation"
 import { revalidatePath } from "next/cache"
 
@@ -73,7 +73,7 @@ export async function migrateData() {
 
     // Migrate Blog Posts
     for (const post of posts) {
-        await sql`
+        await dbQuery`
             INSERT INTO blog_posts (slug, title, excerpt, date, content)
             VALUES (${post.slug}, ${post.title}, ${post.excerpt}, ${post.date}, ${post.content})
             ON CONFLICT (slug) DO NOTHING
@@ -83,12 +83,12 @@ export async function migrateData() {
     // Migrate Certificates
     for (const cert of achievementItems) {
         // Simple duplicate check for certificates (by title and year)
-        const { rows: existsRows } = await sql`
+        const { rows: existsRows } = await dbQuery`
             SELECT id FROM certificates 
             WHERE title = ${cert.title} AND year = ${cert.year}
         `
         if (existsRows.length === 0) {
-            await sql`
+            await dbQuery`
                 INSERT INTO certificates (year, title, subtitle, description, image)
                 VALUES (${cert.year}, ${cert.title}, ${cert.subtitle}, ${cert.description}, ${cert.image})
             `

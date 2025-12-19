@@ -1,6 +1,6 @@
 "use server"
 
-import { sql } from "@/lib/db"
+import { dbQuery } from "@/lib/db"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 
@@ -23,7 +23,7 @@ export async function createPost(formData: FormData) {
 
     const validated = blogSchema.parse(rawData)
 
-    await sql`
+    await dbQuery`
         INSERT INTO blog_posts (title, slug, excerpt, date, content)
         VALUES (${validated.title}, ${validated.slug}, ${validated.excerpt}, ${validated.date}, ${validated.content})
     `
@@ -43,7 +43,7 @@ export async function updatePost(id: number, formData: FormData) {
 
     const validated = blogSchema.parse(rawData)
 
-    await sql`
+    await dbQuery`
         UPDATE blog_posts
         SET title = ${validated.title}, slug = ${validated.slug}, excerpt = ${validated.excerpt}, date = ${validated.date}, content = ${validated.content}
         WHERE id = ${id}
@@ -55,7 +55,7 @@ export async function updatePost(id: number, formData: FormData) {
 }
 
 export async function deletePost(id: number) {
-    await sql`DELETE FROM blog_posts WHERE id = ${id}`
+    await dbQuery`DELETE FROM blog_posts WHERE id = ${id}`
     revalidatePath("/blog")
     revalidatePath("/admin/blog")
 }

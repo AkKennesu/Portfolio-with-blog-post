@@ -10,9 +10,8 @@ const sqlClient = postgres(connectionString, {
   max_lifetime: 60 * 30,
 });
 
-// Create a wrapper to mimic @vercel/postgres { rows } structure 
-// to avoid refactoring every single query call in the app
-export const sql = async (strings: TemplateStringsArray, ...values: any[]) => {
+// Rename to dbQuery to avoid naming collisions with @vercel/postgres 'sql'
+export const dbQuery = async (strings: TemplateStringsArray, ...values: any[]) => {
   const result = await sqlClient(strings, ...values);
   return { rows: result };
 };
@@ -25,7 +24,7 @@ export async function initDb() {
   console.log("🔌 Initializing Database with postgres.js client...");
   try {
     // Create Blog Posts Table
-    await sql`
+    await dbQuery`
       CREATE TABLE IF NOT EXISTS blog_posts (
         id SERIAL PRIMARY KEY,
         slug TEXT UNIQUE NOT NULL,
@@ -38,7 +37,7 @@ export async function initDb() {
     `;
 
     // Create Certificates Table
-    await sql`
+    await dbQuery`
       CREATE TABLE IF NOT EXISTS certificates (
         id SERIAL PRIMARY KEY,
         year TEXT NOT NULL,
@@ -51,7 +50,7 @@ export async function initDb() {
     `;
 
     // Create Admin Users Table
-    await sql`
+    await dbQuery`
       CREATE TABLE IF NOT EXISTS admin_users (
         id SERIAL PRIMARY KEY,
         username TEXT UNIQUE NOT NULL,
@@ -70,7 +69,7 @@ export async function initDb() {
 export async function checkTablesExist() {
   if (!process.env.POSTGRES_URL) return false;
   try {
-    const { rows } = await sql`
+    const { rows } = await dbQuery`
       SELECT tablename 
       FROM pg_catalog.pg_tables 
       WHERE schemaname != 'pg_catalog' 

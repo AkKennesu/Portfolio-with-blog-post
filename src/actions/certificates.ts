@@ -1,6 +1,6 @@
 "use server"
 
-import { sql } from "@/lib/db"
+import { dbQuery } from "@/lib/db"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 
@@ -23,7 +23,7 @@ export async function createCertificate(formData: FormData) {
 
     const validated = certificateSchema.parse(rawData)
 
-    await sql`
+    await dbQuery`
         INSERT INTO certificates (year, title, subtitle, description, image)
         VALUES (${validated.year}, ${validated.title}, ${validated.subtitle}, ${validated.description}, ${validated.image})
     `
@@ -43,7 +43,7 @@ export async function updateCertificate(id: number, formData: FormData) {
 
     const validated = certificateSchema.parse(rawData)
 
-    await sql`
+    await dbQuery`
         UPDATE certificates
         SET year = ${validated.year}, title = ${validated.title}, subtitle = ${validated.subtitle}, description = ${validated.description}, image = ${validated.image}
         WHERE id = ${id}
@@ -54,7 +54,7 @@ export async function updateCertificate(id: number, formData: FormData) {
 }
 
 export async function deleteCertificate(id: number) {
-    await sql`DELETE FROM certificates WHERE id = ${id}`
+    await dbQuery`DELETE FROM certificates WHERE id = ${id}`
     revalidatePath("/")
     revalidatePath("/admin/certificates")
 }

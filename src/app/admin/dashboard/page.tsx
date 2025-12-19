@@ -1,6 +1,6 @@
 import { getSession, migrateData, initializeDatabase } from "@/actions/admin"
 import { redirect } from "next/navigation"
-import { sql } from "@/lib/db"
+import { dbQuery } from "@/lib/db"
 import { FileText, Award, MessageSquare, Database, RefreshCw } from "lucide-react"
 
 export default async function AdminDashboardPage() {
@@ -13,8 +13,8 @@ export default async function AdminDashboardPage() {
 
     try {
         if (process.env.POSTGRES_URL) {
-            const { rows: blogRows } = await sql`SELECT count(*) FROM blog_posts`
-            const { rows: certRows } = await sql`SELECT count(*) FROM certificates`
+            const { rows: blogRows } = await dbQuery`SELECT count(*) FROM blog_posts`
+            const { rows: certRows } = await dbQuery`SELECT count(*) FROM certificates`
 
             blogCount = Number(blogRows[0].count)
             certCount = Number(certRows[0].count)

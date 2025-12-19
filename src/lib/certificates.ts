@@ -1,4 +1,4 @@
-import { sql } from "./db"
+import { dbQuery } from "./db"
 import { achievementItems as fallbackCertificates } from "./data"
 
 export type Certificate = {

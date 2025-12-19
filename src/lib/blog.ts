@@ -43,7 +43,7 @@ export const posts: Post[] = [
   },
 ];
 
-import { sql } from "./db"
+import { dbQuery } from "./db"
 
 export async function getPosts(): Promise<Post[]> {
   try {
