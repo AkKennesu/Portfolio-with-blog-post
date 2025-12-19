@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Plus, Edit, Trash2, Image as ImageIcon, Database } from "lucide-react"
 import { deleteCertificate } from "@/actions/certificates"
 import { checkTablesExist } from "@/lib/db"
+import DeleteButton from "@/components/admin/DeleteButton"
 
 export default async function AdminCertListPage() {
     const session = await getSession()
@@ -83,19 +84,11 @@ export default async function AdminCertListPage() {
                                         >
                                             <Edit className="h-4 w-4" />
                                         </Link>
-                                        <form action={deleteCertificate.bind(null, cert.id!)}>
-                                            <button
-                                                type="submit"
-                                                onClick={(e) => {
-                                                    if (!confirm("Are you sure you want to delete this certificate?")) {
-                                                        e.preventDefault();
-                                                    }
-                                                }}
-                                                className="p-2 text-muted-foreground hover:text-destructive transition-colors"
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                            </button>
-                                        </form>
+                                        <DeleteButton
+                                            action={deleteCertificate}
+                                            id={cert.id!}
+                                            confirmMessage={`Are you sure you want to delete the certificate "${cert.title}"?`}
+                                        />
                                     </div>
                                 </td>
                             </tr>

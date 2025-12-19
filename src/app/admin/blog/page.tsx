@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Plus, Edit, Trash2, Database } from "lucide-react"
 import { deletePost } from "@/actions/blog"
 import { checkTablesExist } from "@/lib/db"
+import DeleteButton from "@/components/admin/DeleteButton"
 
 export default async function AdminBlogListPage() {
     const session = await getSession()
@@ -71,19 +72,11 @@ export default async function AdminBlogListPage() {
                                         >
                                             <Edit className="h-4 w-4" />
                                         </Link>
-                                        <form action={deletePost.bind(null, post.id!)}>
-                                            <button
-                                                type="submit"
-                                                onClick={(e) => {
-                                                    if (!confirm("Are you sure you want to delete this post?")) {
-                                                        e.preventDefault();
-                                                    }
-                                                }}
-                                                className="p-2 text-muted-foreground hover:text-destructive transition-colors"
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                            </button>
-                                        </form>
+                                        <DeleteButton
+                                            action={deletePost}
+                                            id={post.id!}
+                                            confirmMessage={`Are you sure you want to delete "${post.title}"?`}
+                                        />
                                     </div>
                                 </td>
                             </tr>
