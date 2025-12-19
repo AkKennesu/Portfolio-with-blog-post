@@ -11,7 +11,7 @@ const sqlClient = postgres(connectionString, {
 });
 
 // Rename to dbQuery to avoid naming collisions with @vercel/postgres 'sql'
-export const dbQuery = async (strings: TemplateStringsArray, ...values: any[]) => {
+export const dbQuery = async (strings: TemplateStringsArray, ...values: unknown[]) => {
   const result = await sqlClient(strings, ...values);
   return { rows: result };
 };
