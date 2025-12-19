@@ -2,16 +2,47 @@
 
 import { createCertificate, updateCertificate } from "@/actions/certificates"
 import { type Certificate } from "@/lib/certificates"
-import { Save } from "lucide-react"
+import { Save, Upload, X, Loader2 } from "lucide-react"
 import Link from "next/link"
+import { useState, useRef, useTransition } from "react"
 
 export function CertificateForm({ certificate }: { certificate?: Certificate }) {
-    const action = certificate?.id
-        ? updateCertificate.bind(null, certificate.id)
-        : createCertificate
+    const [preview, setPreview] = useState(certificate?.image || "")
+    const [isUploading, setIsUploading] = useState(false)
+    const fileInputRef = useRef<HTMLInputElement>(null)
+    const [isPending, startTransition] = useTransition()
+
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (!file) return
+
+        setIsUploading(true)
+        const reader = new FileReader()
+        reader.onloadend = () => {
+            setPreview(reader.result as string)
+            setIsUploading(false)
+        }
+        reader.readAsDataURL(file)
+    }
+
+    const clearImage = () => {
+        setPreview("")
+        if (fileInputRef.current) fileInputRef.current.value = ""
+    }
 
     return (
-        <form action={action} className="space-y-6 max-w-4xl">
+        <form
+            action={(formData) => {
+                startTransition(async () => {
+                    if (certificate?.id) {
+                        await updateCertificate(certificate.id, formData)
+                    } else {
+                        await createCertificate(formData)
+                    }
+                })
+            }}
+            className="space-y-6 max-w-4xl"
+        >
             <div className="grid gap-4">
                 <div className="grid sm:grid-cols-2 gap-4">
                     <div className="grid gap-2">
@@ -51,15 +82,63 @@ export function CertificateForm({ certificate }: { certificate?: Certificate }) 
                 </div>
 
                 <div className="grid gap-2">
-                    <label htmlFor="image" className="text-sm font-medium">Image URL</label>
-                    <input
-                        id="image"
-                        name="image"
-                        required
-                        defaultValue={certificate?.image}
-                        placeholder="https://images.unsplash.com/..."
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                    />
+                    <label className="text-sm font-medium">Certificate Image</label>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="space-y-4">
+                            <div className="grid gap-2">
+                                <p className="text-xs text-muted-foreground">Option 1: Upload a file</p>
+                                <div
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="border-2 border-dashed border-border rounded-xl p-6 flex flex-col items-center justify-center gap-2 hover:bg-muted/50 cursor-pointer transition-colors"
+                                >
+                                    <Upload className="h-6 w-6 text-muted-foreground" />
+                                    <span className="text-sm font-medium">Click to upload</span>
+                                    <input
+                                        type="file"
+                                        ref={fileInputRef}
+                                        onChange={handleFileChange}
+                                        accept="image/*"
+                                        className="hidden"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid gap-2">
+                                <p className="text-xs text-muted-foreground">Option 2: Paste an image URL</p>
+                                <input
+                                    id="image"
+                                    name="image"
+                                    required
+                                    value={preview}
+                                    onChange={(e) => setPreview(e.target.value)}
+                                    placeholder="https://images.unsplash.com/..."
+                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="grid gap-2">
+                            <p className="text-xs text-muted-foreground">Preview</p>
+                            <div className="relative aspect-video rounded-xl border border-border bg-muted overflow-hidden flex items-center justify-center">
+                                {isUploading ? (
+                                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                                ) : preview ? (
+                                    <>
+                                        <img src={preview} alt="Certificate preview" className="h-full w-full object-contain" />
+                                        <button
+                                            type="button"
+                                            onClick={clearImage}
+                                            className="absolute top-2 right-2 p-1 rounded-full bg-background/80 hover:bg-background text-foreground shadow-sm transition-colors"
+                                        >
+                                            <X className="h-4 w-4" />
+                                        </button>
+                                    </>
+                                ) : (
+                                    <span className="text-xs text-muted-foreground">No image provided</span>
+                                )}
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div className="grid gap-2">
@@ -75,7 +154,7 @@ export function CertificateForm({ certificate }: { certificate?: Certificate }) 
                 </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-4">
+            <div className="flex justify-end gap-3 pt-4 border-t border-border">
                 <Link
                     href="/admin/certificates"
                     className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium ring-offset-background transition-colors hover:bg-muted"
@@ -84,9 +163,14 @@ export function CertificateForm({ certificate }: { certificate?: Certificate }) 
                 </Link>
                 <button
                     type="submit"
-                    className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground ring-offset-background transition-colors hover:bg-primary/90"
+                    disabled={isPending || isUploading}
+                    className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground ring-offset-background transition-colors hover:bg-primary/90 disabled:opacity-50"
                 >
-                    <Save className="mr-2 h-4 w-4" />
+                    {isPending ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                        <Save className="mr-2 h-4 w-4" />
+                    )}
                     {certificate ? "Update Certificate" : "Add Certificate"}
                 </button>
             </div>
