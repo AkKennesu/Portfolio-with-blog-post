@@ -2,6 +2,7 @@
 
 import { dbQuery } from "@/lib/db"
 import { revalidatePath } from "next/cache"
+import { redirect } from "next/navigation"
 import { z } from "zod"
 
 const blogSchema = z.object({
@@ -30,6 +31,7 @@ export async function createPost(formData: FormData) {
 
     revalidatePath("/blog")
     revalidatePath("/admin/blog")
+    redirect("/admin/blog")
 }
 
 export async function updatePost(id: number, formData: FormData) {
@@ -52,6 +54,7 @@ export async function updatePost(id: number, formData: FormData) {
     revalidatePath("/blog")
     revalidatePath(`/blog/${validated.slug}`)
     revalidatePath("/admin/blog")
+    redirect("/admin/blog")
 }
 
 export async function deletePost(id: number) {
