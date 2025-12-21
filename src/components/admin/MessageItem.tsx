@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react"
 import { toggleRead, toggleImportant, deleteMessage, type Message } from "@/actions/messages"
-import { Trash2, Star, CheckCircle2, Circle, Clock, Mail, User } from "lucide-react"
+import { Star, CheckCircle2, Circle, Clock, Mail, User } from "lucide-react"
 import DeleteButton from "@/components/admin/DeleteButton"
 
 export function MessageItem({ message }: { message: Message }) {
