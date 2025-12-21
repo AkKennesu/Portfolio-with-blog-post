@@ -1,7 +1,6 @@
 "use client"
 
 import { Trash2, Loader2 } from "lucide-react"
-import { useRouter } from "next/navigation"
 import { useTransition } from "react"
 
 interface ActionResult {
@@ -20,7 +19,6 @@ export default function DeleteButton({
     id,
     confirmMessage = "Are you sure you want to delete this item?"
 }: DeleteButtonProps) {
-    const router = useRouter()
     const [isPending, startTransition] = useTransition()
 
     const handleDelete = async (e: React.FormEvent) => {
