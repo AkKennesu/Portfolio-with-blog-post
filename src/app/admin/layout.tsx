@@ -1,6 +1,6 @@
 import { getSession } from "@/actions/admin"
 import Link from "next/link"
-import { LayoutDashboard, FileText, Award, ExternalLink } from "lucide-react"
+import { LayoutDashboard, FileText, Award, ExternalLink, Mail } from "lucide-react"
 
 export default async function AdminLayout({
     children,
@@ -32,6 +32,13 @@ export default async function AdminLayout({
                         >
                             <LayoutDashboard className="h-4 w-4" />
                             Dashboard
+                        </Link>
+                        <Link
+                            href="/admin/messages"
+                            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium hover:bg-muted transition-colors"
+                        >
+                            <Mail className="h-4 w-4" />
+                            Messages
                         </Link>
                         <Link
                             href="/admin/blog"

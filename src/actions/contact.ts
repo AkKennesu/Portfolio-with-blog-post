@@ -1,5 +1,6 @@
 "use server"
 
+import { dbQuery } from "@/lib/db"
 import { z } from "zod"
 
 const contactSchema = z.object({
@@ -31,16 +32,24 @@ export async function submitContact(prevState: ContactState, formData: FormData)
         }
     }
 
-    // Simulate backend processing (Database call, Email service, etc.)
-    console.log("Server-side processing contact submission:", validated.data)
+    try {
+        // Save to Database
+        await dbQuery`
+            INSERT INTO messages (name, email, message)
+            VALUES (${validated.data.name}, ${validated.data.email}, ${validated.data.message})
+        `
 
-    // Artificial delay to show loading state
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+        // Artificial delay to show loading state (optional but nice for UX)
+        await new Promise((resolve) => setTimeout(resolve, 800))
 
-    // In a real app, you would save to DB here:
-    // await db.contactRequests.create({ data: validated.data })
-
-    return {
-        success: true,
+        return {
+            success: true,
+        }
+    } catch (error) {
+        console.error("Error saving contact message:", error)
+        return {
+            error: "Failed to send message. Please try again later.",
+            fields: rawData,
+        }
     }
 }

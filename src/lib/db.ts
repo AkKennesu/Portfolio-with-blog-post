@@ -60,6 +60,19 @@ export async function initDb() {
       );
     `;
 
+    // Create Messages Table
+    await dbQuery`
+      CREATE TABLE IF NOT EXISTS messages (
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL,
+        email TEXT NOT NULL,
+        message TEXT NOT NULL,
+        is_read BOOLEAN DEFAULT FALSE,
+        is_important BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `;
+
     console.log("Database tables initialized successfully");
   } catch (error) {
     console.error("Error initializing database:", error);
@@ -75,9 +88,9 @@ export async function checkTablesExist() {
       FROM pg_catalog.pg_tables 
       WHERE schemaname != 'pg_catalog' 
       AND schemaname != 'information_schema'
-      AND tablename IN ('blog_posts', 'certificates')
+      AND tablename IN ('blog_posts', 'certificates', 'messages')
     `;
-    return rows.length >= 2;
+    return rows.length >= 3;
   } catch {
     return false;
   }

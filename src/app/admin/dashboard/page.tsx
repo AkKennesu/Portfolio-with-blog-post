@@ -10,14 +10,17 @@ export default async function AdminDashboardPage() {
     // Get stats
     let blogCount = 0
     let certCount = 0
+    let messageCount = 0
 
     try {
         if (process.env.POSTGRES_URL) {
             const { rows: blogRows } = await dbQuery`SELECT count(*) FROM blog_posts`
             const { rows: certRows } = await dbQuery`SELECT count(*) FROM certificates`
+            const { rows: messageRows } = await dbQuery`SELECT count(*) FROM messages`
 
             blogCount = Number(blogRows[0].count)
             certCount = Number(certRows[0].count)
+            messageCount = Number(messageRows[0].count)
         }
     } catch {
         // Tables might not exist yet if not initialized
@@ -26,7 +29,7 @@ export default async function AdminDashboardPage() {
     const stats = [
         { name: "Total Blog Posts", value: blogCount, icon: FileText, color: "text-blue-500", bg: "bg-blue-500/10" },
         { name: "Total Certificates", value: certCount, icon: Award, color: "text-amber-500", bg: "bg-amber-500/10" },
-        { name: "Contact Requests", value: "Active", icon: MessageSquare, color: "text-green-500", bg: "bg-green-500/10" },
+        { name: "Total Messages", value: messageCount, icon: MessageSquare, color: "text-green-500", bg: "bg-green-500/10" },
     ]
 
     return (
