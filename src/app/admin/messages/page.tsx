@@ -1,3 +1,4 @@
+import { unstable_noStore as noStore } from "next/cache"
 import { getMessages } from "@/actions/messages"
 import { getSession } from "@/actions/admin"
 import { redirect } from "next/navigation"
@@ -7,6 +8,7 @@ import { checkTablesExist } from "@/lib/db"
 import Link from "next/link"
 
 export default async function AdminMessagesPage() {
+    noStore()
     const session = await getSession()
     if (!session) redirect("/admin/login")
 

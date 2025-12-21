@@ -1,3 +1,4 @@
+import { unstable_noStore as noStore } from "next/cache"
 import { getPosts } from "@/lib/blog"
 import { getSession } from "@/actions/admin"
 import { redirect } from "next/navigation"
@@ -8,6 +9,7 @@ import { checkTablesExist } from "@/lib/db"
 import DeleteButton from "@/components/admin/DeleteButton"
 
 export default async function AdminBlogListPage() {
+    noStore()
     const session = await getSession()
     if (!session) redirect("/admin/login")
 

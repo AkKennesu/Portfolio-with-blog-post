@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { getSession } from "@/actions/admin"
 import Link from "next/link"
 import { LayoutDashboard, FileText, Award, ExternalLink, Mail, Settings } from "lucide-react"
