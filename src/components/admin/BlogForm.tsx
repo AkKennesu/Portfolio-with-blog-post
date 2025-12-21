@@ -1,22 +1,33 @@
 "use client"
 
+import { useActionState } from "react"
 import { createPost, updatePost } from "@/actions/blog"
 import { type Post } from "@/lib/blog"
-import { Save } from "lucide-react"
+import { Save, Loader2 } from "lucide-react"
 import Link from "next/link"
 
+interface FormState {
+    error?: string
+}
+
 export function BlogForm({ post }: { post?: Post }) {
-
-    // Determine which action to use
-    const action = post?.id
-        ? updatePost.bind(null, post.id)
-        : createPost
-
-    // Note: useActionState with bind might need careful handling
-    // For simplicity I'll use a wrapper if needed or just handle it inside
+    const [state, formAction, isPending] = useActionState(
+        async (prevState: FormState | null, formData: FormData) => {
+            const result = post?.id
+                ? await updatePost(post.id, formData)
+                : await createPost(formData)
+            return (result as FormState) || null
+        },
+        null
+    )
 
     return (
-        <form action={action} className="space-y-6 max-w-4xl">
+        <form action={formAction} className="space-y-6 max-w-4xl">
+            {state?.error && (
+                <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm font-medium">
+                    {state.error}
+                </div>
+            )}
             <div className="grid gap-4">
                 <div className="grid gap-2">
                     <label htmlFor="title" className="text-sm font-medium">Title</label>
@@ -79,7 +90,7 @@ export function BlogForm({ post }: { post?: Post }) {
                 </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-4">
+            <div className="flex justify-end gap-3 pt-4 border-t border-border">
                 <Link
                     href="/admin/blog"
                     className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium ring-offset-background transition-colors hover:bg-muted"
@@ -88,9 +99,14 @@ export function BlogForm({ post }: { post?: Post }) {
                 </Link>
                 <button
                     type="submit"
-                    className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground ring-offset-background transition-colors hover:bg-primary/90"
+                    disabled={isPending}
+                    className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground ring-offset-background transition-colors hover:bg-primary/90 disabled:opacity-50"
                 >
-                    <Save className="mr-2 h-4 w-4" />
+                    {isPending ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                        <Save className="mr-2 h-4 w-4" />
+                    )}
                     {post ? "Update Post" : "Create Post"}
                 </button>
             </div>

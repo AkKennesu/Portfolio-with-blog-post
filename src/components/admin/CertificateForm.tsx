@@ -1,16 +1,29 @@
 "use client"
 
+import { useActionState, useState, useRef } from "react"
 import { createCertificate, updateCertificate } from "@/actions/certificates"
 import { type Certificate } from "@/lib/certificates"
 import { Save, Upload, X, Loader2 } from "lucide-react"
 import Link from "next/link"
-import { useState, useRef, useTransition } from "react"
+
+interface FormState {
+    error?: string
+}
 
 export function CertificateForm({ certificate }: { certificate?: Certificate }) {
     const [preview, setPreview] = useState(certificate?.image || "")
     const [isUploading, setIsUploading] = useState(false)
     const fileInputRef = useRef<HTMLInputElement>(null)
-    const [isPending, startTransition] = useTransition()
+
+    const [state, formAction, isPending] = useActionState(
+        async (prevState: FormState | null, formData: FormData) => {
+            const result = certificate?.id
+                ? await updateCertificate(certificate.id, formData)
+                : await createCertificate(formData)
+            return (result as FormState) || null
+        },
+        null
+    )
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
@@ -31,18 +44,12 @@ export function CertificateForm({ certificate }: { certificate?: Certificate }) 
     }
 
     return (
-        <form
-            action={(formData) => {
-                startTransition(async () => {
-                    if (certificate?.id) {
-                        await updateCertificate(certificate.id, formData)
-                    } else {
-                        await createCertificate(formData)
-                    }
-                })
-            }}
-            className="space-y-6 max-w-4xl"
-        >
+        <form action={formAction} className="space-y-6 max-w-4xl">
+            {state?.error && (
+                <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm font-medium">
+                    {state.error}
+                </div>
+            )}
             <div className="grid gap-4">
                 <div className="grid sm:grid-cols-2 gap-4">
                     <div className="grid gap-2">
