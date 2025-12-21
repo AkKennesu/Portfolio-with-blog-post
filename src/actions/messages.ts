@@ -69,7 +69,10 @@ export async function deleteMessage(id: number) {
             WHERE id = ${id}
         `
         revalidatePath("/admin/messages")
+        revalidatePath("/admin", "layout")
+        return { success: true }
     } catch (error) {
         console.error("Failed to delete message:", error)
+        return { success: false, error: "Deletion failed" }
     }
 }

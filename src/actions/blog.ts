@@ -58,7 +58,14 @@ export async function updatePost(id: number, formData: FormData) {
 }
 
 export async function deletePost(id: number) {
-    await dbQuery`DELETE FROM blog_posts WHERE id = ${id}`
-    revalidatePath("/blog")
-    revalidatePath("/admin/blog")
+    try {
+        await dbQuery`DELETE FROM blog_posts WHERE id = ${id}`
+        revalidatePath("/blog")
+        revalidatePath("/admin/blog")
+        revalidatePath("/admin", "layout")
+        return { success: true }
+    } catch (error) {
+        console.error("Failed to delete post:", error)
+        return { success: false, error: "Deletion failed" }
+    }
 }

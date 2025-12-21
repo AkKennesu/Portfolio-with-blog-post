@@ -57,7 +57,14 @@ export async function updateCertificate(id: number, formData: FormData) {
 }
 
 export async function deleteCertificate(id: number) {
-    await dbQuery`DELETE FROM certificates WHERE id = ${id}`
-    revalidatePath("/")
-    revalidatePath("/admin/certificates")
+    try {
+        await dbQuery`DELETE FROM certificates WHERE id = ${id}`
+        revalidatePath("/")
+        revalidatePath("/admin/certificates")
+        revalidatePath("/admin", "layout")
+        return { success: true }
+    } catch (error) {
+        console.error("Failed to delete certificate:", error)
+        return { success: false, error: "Deletion failed" }
+    }
 }
