@@ -24,15 +24,17 @@ export async function getSettings(): Promise<SettingsMap> {
 
     try {
         const { rows } = await dbQuery`SELECT key, value FROM site_settings`
-        const settings = { ...defaults } as any
+        const settings = { ...defaults }
 
-        rows.forEach((row: any) => {
-            if (row.key in settings) {
-                settings[row.key] = row.value
+        const dbRows = rows as unknown as { key: string; value: string }[]
+        dbRows.forEach((row) => {
+            const key = row.key as keyof SettingsMap
+            if (key in settings) {
+                settings[key] = row.value
             }
         })
 
-        return settings as SettingsMap
+        return settings
     } catch (error) {
         console.error("Failed to fetch settings:", error)
         return defaults

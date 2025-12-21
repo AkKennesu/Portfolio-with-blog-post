@@ -1,10 +1,10 @@
 "use client"
 
-import { motion } from "framer-motion"
+import { motion, Target, VariantLabels } from "framer-motion"
 
 interface AboutContentProps {
     children: React.ReactNode
-    initial: any
+    initial: Target | VariantLabels
     delay: number
     className?: string
 }
