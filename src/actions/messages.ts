@@ -42,6 +42,7 @@ export async function toggleRead(id: number, status: boolean) {
             WHERE id = ${id}
         `
         revalidatePath("/admin/messages")
+        revalidatePath("/", "layout")
     } catch (error) {
         console.error("Failed to toggle read status:", error)
     }
@@ -56,6 +57,7 @@ export async function toggleImportant(id: number, status: boolean) {
             WHERE id = ${id}
         `
         revalidatePath("/admin/messages")
+        revalidatePath("/", "layout")
     } catch (error) {
         console.error("Failed to toggle important status:", error)
     }
@@ -69,7 +71,7 @@ export async function deleteMessage(id: number) {
             WHERE id = ${id}
         `
         revalidatePath("/admin/messages")
-        revalidatePath("/admin", "layout")
+        revalidatePath("/", "layout")
         return { success: true }
     } catch (error) {
         console.error("Failed to delete message:", error)

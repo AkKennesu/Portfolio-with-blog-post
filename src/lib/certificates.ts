@@ -16,11 +16,11 @@ export async function getCertificates(): Promise<Certificate[]> {
             return fallbackCertificates as Certificate[];
         }
         const { rows } = await dbQuery`SELECT * FROM certificates ORDER BY year DESC, created_at DESC`
-        if (rows.length > 0) return rows as unknown as Certificate[]
+        return rows as unknown as Certificate[]
     } catch (error) {
         console.error("Failed to fetch certificates from DB, using fallback data", error)
+        return fallbackCertificates as Certificate[];
     }
-    return fallbackCertificates as Certificate[];
 }
 
 export async function getCertificate(id: number): Promise<Certificate | undefined> {

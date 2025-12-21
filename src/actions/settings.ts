@@ -24,6 +24,8 @@ export async function getSettings(): Promise<SettingsMap> {
 
     try {
         const { rows } = await dbQuery`SELECT key, value FROM site_settings`
+        if (rows.length === 0) return defaults
+
         const settings = { ...defaults }
 
         const dbRows = rows as unknown as { key: string; value: string }[]
@@ -42,15 +44,15 @@ export async function getSettings(): Promise<SettingsMap> {
 }
 
 export async function updateSettings(formData: FormData) {
-    await checkAuth()
-
-    const settingsToUpdate = [
-        "about_me_1",
-        "about_me_2",
-        "primary_color"
-    ]
-
     try {
+        await checkAuth()
+
+        const settingsToUpdate = [
+            "about_me_1",
+            "about_me_2",
+            "primary_color"
+        ]
+
         for (const key of settingsToUpdate) {
             const value = formData.get(key) as string
             if (value !== null) {
@@ -68,6 +70,6 @@ export async function updateSettings(formData: FormData) {
         return { success: true }
     } catch (error) {
         console.error("Failed to update settings:", error)
-        return { success: false, error: "Failed to update settings" }
+        return { success: false, error: error instanceof Error ? error.message : "Failed to update settings" }
     }
 }

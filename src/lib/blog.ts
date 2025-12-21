@@ -51,11 +51,11 @@ export async function getPosts(): Promise<Post[]> {
       return posts;
     }
     const { rows } = await dbQuery`SELECT * FROM blog_posts ORDER BY date DESC`
-    if (rows.length > 0) return rows as unknown as Post[]
+    return rows as unknown as Post[]
   } catch (error) {
     console.error("Failed to fetch posts from DB, using fallback data", error)
+    return posts;
   }
-  return posts;
 }
 
 export async function getPost(slug: string): Promise<Post | undefined> {
