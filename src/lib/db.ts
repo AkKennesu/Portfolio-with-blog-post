@@ -73,6 +73,16 @@ export async function initDb() {
       );
     `;
 
+    // Create Site Settings Table
+    await dbQuery`
+      CREATE TABLE IF NOT EXISTS site_settings (
+        id SERIAL PRIMARY KEY,
+        key TEXT UNIQUE NOT NULL,
+        value TEXT NOT NULL,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `;
+
     console.log("Database tables initialized successfully");
   } catch (error) {
     console.error("Error initializing database:", error);
@@ -88,9 +98,9 @@ export async function checkTablesExist() {
       FROM pg_catalog.pg_tables 
       WHERE schemaname != 'pg_catalog' 
       AND schemaname != 'information_schema'
-      AND tablename IN ('blog_posts', 'certificates', 'messages')
+      AND tablename IN ('blog_posts', 'certificates', 'messages', 'site_settings')
     `;
-    return rows.length >= 3;
+    return rows.length >= 4;
   } catch {
     return false;
   }

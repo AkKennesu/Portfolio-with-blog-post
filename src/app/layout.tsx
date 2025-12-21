@@ -22,14 +22,25 @@ export const metadata: Metadata = {
   description: "Personal portfolio and blog.",
 };
 
-export default function RootLayout({
+import { getSettings } from "@/actions/settings";
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const settings = await getSettings();
+
   return (
     <html lang="en" suppressHydrationWarning className={geo.variable}>
       <head>
+        <style dangerouslySetInnerHTML={{
+          __html: `
+            :root {
+              --primary: ${settings.primary_color || '#3b82f6'};
+            }
+          `
+        }} />
         {process.env.NODE_ENV === "development" && (
           <>
             <Script
