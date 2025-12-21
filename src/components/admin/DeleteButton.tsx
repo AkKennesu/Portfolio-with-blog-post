@@ -4,8 +4,13 @@ import { Trash2, Loader2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useTransition } from "react"
 
+interface ActionResult {
+    success: boolean
+    error?: string
+}
+
 interface DeleteButtonProps {
-    action: (id: number) => Promise<void>
+    action: (id: number) => Promise<ActionResult | void>
     id: number
     confirmMessage?: string
 }
@@ -24,7 +29,7 @@ export default function DeleteButton({
         if (!confirm(confirmMessage)) return
 
         startTransition(async () => {
-            const result = await action(id) as any
+            const result = await action(id) as ActionResult
             if (result?.success) {
                 router.refresh()
             } else {
