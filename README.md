@@ -1,36 +1,64 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Modern Full-Stack Portfolio & CMS
 
-## Getting Started
+A premium, high-performance portfolio website built with **Next.js 15**, featuring a custom-built **Content Management System (CMS)** and stunning **3D animations**.
 
-First, run the development server:
+## 🚀 Overview
+This project is more than just a portfolio; it's a complete personal brand platform. It includes a secure Administrative Dashboard to manage blog posts, professional certificates, and visitor inquiries in real-time without redeploying code.
 
+## ✨ Key Features
+- **Dynamic CMS**: Full CRUD (Create, Read, Update, Delete) for Blog Posts and Certificates.
+- **Messaging System**: Dedicated "Message Center" in the admin panel to read, flag, and manage visitor inquiries.
+- **3D Interactive UI**: Experience-driven design using **Three.js** and **GSAP** for fluid transitions and 3D profile effects.
+- **Secure Admin Panel**: Protected by JWT-based authentication and secure session management.
+- **Responsive Design**: Fully optimized for all devices with a "Glassmorphic" dark-themed aesthetic.
+- **Database Persistence**: Powered by **PostgreSQL** (via Supabase/Vercel) using the universal `postgres.js` client.
+
+## 🛠️ Tech Stack
+- **Framework**: Next.js 15 (App Router)
+- **Styling**: Tailwind CSS & Lucide Icons
+- **Animations**: Three.js, GSAP, Framer Motion, and Lenis (Smooth Scroll)
+- **Database**: PostgreSQL (Supabase / Vercel Postgres)
+- **Authentication**: JWT & HTTP-only Cookies
+- **Validation**: Zod (Schema validation for all forms)
+
+## 📥 Installation & Local Setup
+
+### 1. Clone the repository
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/AkKennesu/Portfolio-with-blog-post.git
+cd Portfolio-with-blog-post
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Install dependencies
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3. Environment Variables
+Create a `.env.local` file in the root directory and add your PostgreSQL connection string:
+```env
+POSTGRES_URL="your-postgresql-connection-string"
+JWT_SECRET="your-random-secret-string"
+ADMIN_PASSWORD="your-secure-admin-password"
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 4. Run the development server
+```bash
+npm run dev
+```
+Open [http://localhost:3000](http://localhost:3000) to see your site.
 
-## Learn More
+## 🚀 Deployment
 
-To learn more about Next.js, take a look at the following resources:
+### Database Initialization
+Once deployed (e.g., on Vercel), navigate to `/admin/dashboard` and click **"Initialize Tables"**. This will automatically create the:
+- `blog_posts` table
+- `certificates` table
+- `messages` table
+- `admin_users` table
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Data Migration
+If you have existing static data, you can use the **"Sync with Static Data"** button in the dashboard to migrate your local records into your live database instantly.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+Built with ❤️ by [Arn Kenneth](https://github.com/AkKennesu)
