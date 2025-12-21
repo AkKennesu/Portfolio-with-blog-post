@@ -9,6 +9,7 @@ export default function AdminSettingsPage() {
     const [settings, setSettings] = useState<SettingsMap | null>(null)
     const [isPending, startTransition] = useTransition()
     const [localColor, setLocalColor] = useState("#3b82f6")
+    const [status, setStatus] = useState<{ type: 'success' | 'error', msg: string } | null>(null)
 
     useEffect(() => {
         getSettings().then(data => {
@@ -18,8 +19,15 @@ export default function AdminSettingsPage() {
     }, [])
 
     const handleSubmit = async (formData: FormData) => {
+        setStatus(null)
         startTransition(async () => {
-            await updateSettings(formData)
+            const result = await updateSettings(formData)
+            if (result.success) {
+                setStatus({ type: 'success', msg: 'Settings updated successfully!' })
+                setTimeout(() => setStatus(null), 3000)
+            } else {
+                setStatus({ type: 'error', msg: result.error || 'Failed to update' })
+            }
         })
     }
 
@@ -124,6 +132,14 @@ export default function AdminSettingsPage() {
                         </div>
                     </div>
                 </div>
+
+                {status && (
+                    <div className={`p-4 rounded-lg flex items-center gap-3 animate-in fade-in slide-in-from-bottom-2 ${status.type === 'success' ? 'bg-green-500/10 text-green-500 border border-green-500/20' : 'bg-red-500/10 text-red-500 border border-red-500/20'
+                        }`}>
+                        {status.type === 'success' ? <Save className="h-4 w-4" /> : <RotateCcw className="h-4 w-4" />}
+                        <p className="text-sm font-medium">{status.msg}</p>
+                    </div>
+                )}
 
                 <div className="flex items-center justify-end gap-4 pt-4">
                     <button

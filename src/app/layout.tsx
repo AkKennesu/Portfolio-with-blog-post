@@ -17,6 +17,8 @@ const geo = Geo({
   variable: "--font-geo", // Renamed from --font-inter
 });
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Arn Kenneth | Portfolio",
   description: "Personal portfolio and blog.",
@@ -36,8 +38,11 @@ export default async function RootLayout({
       <head>
         <style dangerouslySetInnerHTML={{
           __html: `
-            :root {
-              --primary: ${settings.primary_color || '#3b82f6'};
+            html:root {
+              --primary: ${settings.primary_color || '#3b82f6'} !important;
+            }
+            html.dark {
+              --primary: ${settings.primary_color || '#3b82f6'} !important;
             }
           `
         }} />

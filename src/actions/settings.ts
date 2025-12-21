@@ -62,8 +62,9 @@ export async function updateSettings(formData: FormData) {
             }
         }
 
-        revalidatePath("/")
+        revalidatePath("/", "layout")
         revalidatePath("/admin/settings")
+        console.log("Settings updated successfully for keys:", settingsToUpdate)
         return { success: true }
     } catch (error) {
         console.error("Failed to update settings:", error)
