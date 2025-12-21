@@ -31,7 +31,7 @@ export default function DeleteButton({
         startTransition(async () => {
             const result = await action(id) as ActionResult
             if (result?.success) {
-                router.refresh()
+                window.location.reload()
             } else {
                 alert(result?.error || "Failed to delete item")
             }
