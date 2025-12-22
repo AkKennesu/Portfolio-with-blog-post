@@ -1,6 +1,7 @@
 "use client"
 
 import { motion, AnimatePresence } from "framer-motion"
+import Image from "next/image"
 import { educationItems } from "@/lib/data"
 import useEmblaCarousel from "embla-carousel-react"
 import Autoplay from "embla-carousel-autoplay"
@@ -172,8 +173,9 @@ function AchievementCard({ item, onClick }: { item: Certificate, onClick: () => 
             className="group relative m-0 flex h-72 w-full max-w-[400px] rounded-xl shadow-xl ring-gray-900/5 sm:mx-auto cursor-zoom-in"
         >
             <div className="z-10 h-full w-full overflow-hidden rounded-xl border border-gray-200 opacity-80 transition duration-300 ease-in-out group-hover:opacity-100 dark:border-gray-700 dark:opacity-70">
-                <img
+                <Image
                     src={item.image}
+                    fill
                     className="block h-full w-full scale-100 transform object-cover object-center opacity-100 transition duration-300 group-hover:scale-110"
                     alt={item.title}
                 />

@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { Edit, CheckSquare, Square, Image as ImageIcon } from "lucide-react"
 import { type Certificate } from "@/lib/certificates"
 import { deleteCertificate, deleteCertificates } from "@/actions/certificates"
@@ -81,9 +82,9 @@ export default function CertListClient({ certs }: { certs: Certificate[] }) {
                                     </button>
                                 </td>
                                 <td className="px-6 py-4">
-                                    <div className="h-10 w-10 rounded-md bg-muted overflow-hidden border border-border">
+                                    <div className="h-10 w-10 min-w-[40px] rounded-md bg-muted overflow-hidden border border-border relative">
                                         {cert.image ? (
-                                            <img src={cert.image} alt={cert.title} className="h-full w-full object-cover" />
+                                            <Image src={cert.image} alt={cert.title} fill className="object-cover" />
                                         ) : (
                                             <div className="h-full w-full flex items-center justify-center">
                                                 <ImageIcon className="h-4 w-4 text-muted-foreground" />

@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { type Message } from "@/actions/messages"
-import { deleteMessage, deleteMessages } from "@/actions/messages"
+import { deleteMessages } from "@/actions/messages"
 import { MessageItem } from "./MessageItem"
 import { BatchDeleteToolbar } from "./BatchDeleteToolbar"
 import { CheckSquare, Square, Inbox } from "lucide-react"

@@ -5,6 +5,7 @@ import { createCertificate, updateCertificate } from "@/actions/certificates"
 import { type Certificate } from "@/lib/certificates"
 import { Save, Upload, X, Loader2 } from "lucide-react"
 import Link from "next/link"
+import Image from "next/image"
 
 interface FormState {
     error?: string
@@ -131,7 +132,13 @@ export function CertificateForm({ certificate }: { certificate?: Certificate }) 
                                     <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                                 ) : preview ? (
                                     <>
-                                        <img src={preview} alt="Certificate preview" className="h-full w-full object-contain" />
+                                        <Image
+                                            src={preview}
+                                            alt="Certificate preview"
+                                            fill
+                                            unoptimized
+                                            className="object-contain"
+                                        />
                                         <button
                                             type="button"
                                             onClick={clearImage}
