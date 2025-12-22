@@ -83,7 +83,7 @@ export default async function RootLayout({
             <PageTransition>
               <main className="flex-1 w-full flex flex-col pt-16">{children}</main>
             </PageTransition>
-            <Footer />
+            <Footer settings={settings} />
           </SmoothScrolling>
         </ThemeProvider>
       </body>

@@ -8,6 +8,11 @@ export type SettingsMap = {
     about_me_1: string
     about_me_2: string
     primary_color: string
+    social_github: string
+    social_linkedin: string
+    social_twitter: string
+    social_facebook: string
+    social_email: string
 }
 
 async function checkAuth() {
@@ -19,7 +24,12 @@ export async function getSettings(): Promise<SettingsMap> {
     const defaults: SettingsMap = {
         about_me_1: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam non neque est. Sed vel pretium massa. Donec eget nibh a magna feugiat rutrum.",
         about_me_2: "Vivamus at dui mollis, finibus justo vitae, accumsan nullam. Phasellus vestibulum hendrerit ex, ut ullamcorper arcu finibus a. Fusce et nibh quist.",
-        primary_color: "#3b82f6" // Default blue-500
+        primary_color: "#3b82f6", // Default blue-500
+        social_github: "#",
+        social_linkedin: "#",
+        social_twitter: "#",
+        social_facebook: "#",
+        social_email: "hello@example.com"
     }
 
     try {
@@ -50,7 +60,12 @@ export async function updateSettings(formData: FormData) {
         const settingsToUpdate = [
             "about_me_1",
             "about_me_2",
-            "primary_color"
+            "primary_color",
+            "social_github",
+            "social_linkedin",
+            "social_twitter",
+            "social_facebook",
+            "social_email"
         ]
 
         for (const key of settingsToUpdate) {

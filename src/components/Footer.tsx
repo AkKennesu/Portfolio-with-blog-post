@@ -1,7 +1,8 @@
 import Link from "next/link"
-import { Github, Twitter, Linkedin } from "lucide-react"
+import { Github, Twitter, Linkedin, Facebook } from "lucide-react"
+import { SettingsMap } from "@/actions/settings"
 
-export function Footer() {
+export function Footer({ settings }: { settings?: SettingsMap }) {
     return (
         <footer className="border-t border-white/5 bg-background pb-24 md:pb-0">
             <div className="container mx-auto flex flex-col items-center justify-between gap-4 py-10 md:h-24 md:flex-row md:py-0 px-4">
@@ -9,34 +10,28 @@ export function Footer() {
                     <p className="text-center text-sm leading-loose text-muted-foreground md:text-left">
                         Built by{" "}
                         <a
-                            href="#"
+                            href={settings?.social_linkedin || "#"}
                             target="_blank"
                             rel="noreferrer"
                             className="font-medium underline underline-offset-4"
                         >
                             Arn Kenneth
                         </a>
-                        . The source code is available on{" "}
-                        <a
-                            href="#"
-                            target="_blank"
-                            rel="noreferrer"
-                            className="font-medium underline underline-offset-4"
-                        >
-                            GitHub
-                        </a>
                         .
                     </p>
                 </div>
                 <div className="flex items-center gap-4">
-                    <Link href="#" className="text-muted-foreground hover:text-foreground">
+                    <Link href={settings?.social_github || "#"} target="_blank" className="text-muted-foreground hover:text-foreground">
                         <Github className="h-5 w-5" />
                     </Link>
-                    <Link href="#" className="text-muted-foreground hover:text-foreground">
+                    <Link href={settings?.social_twitter || "#"} target="_blank" className="text-muted-foreground hover:text-foreground">
                         <Twitter className="h-5 w-5" />
                     </Link>
-                    <Link href="#" className="text-muted-foreground hover:text-foreground">
+                    <Link href={settings?.social_linkedin || "#"} target="_blank" className="text-muted-foreground hover:text-foreground">
                         <Linkedin className="h-5 w-5" />
+                    </Link>
+                    <Link href={settings?.social_facebook || "#"} target="_blank" className="text-muted-foreground hover:text-foreground">
+                        <Facebook className="h-5 w-5" />
                     </Link>
                 </div>
             </div>

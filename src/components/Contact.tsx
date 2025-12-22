@@ -2,14 +2,15 @@
 
 import { useActionState, useEffect, useRef } from "react"
 import { motion } from "framer-motion"
-import { Github, Twitter, Linkedin, Mail, Send } from "lucide-react"
+import { Github, Twitter, Linkedin, Mail, Send, Facebook } from "lucide-react"
 import { EncryptButton } from "@/components/EncryptButton"
 import { SocialLink } from "@/components/SocialLink"
 import { submitContact, type ContactState } from "@/actions/contact"
+import { SettingsMap } from "@/actions/settings"
 
 const initialState: ContactState = {}
 
-export function Contact() {
+export function Contact({ settings }: { settings?: SettingsMap }) {
     const [state, formAction, isPending] = useActionState(submitContact, initialState)
     const formRef = useRef<HTMLFormElement>(null)
 
@@ -30,11 +31,12 @@ export function Contact() {
                         </p>
 
                         <div className="flex flex-col gap-4">
-                            <div className="flex gap-4 mt-4">
-                                <SocialLink href="#" icon={Github} color="#333333" label="GitHub" />
-                                <SocialLink href="#" icon={Twitter} color="#1DA1F2" label="Twitter" />
-                                <SocialLink href="#" icon={Linkedin} color="#0077b5" label="LinkedIn" />
-                                <SocialLink href="mailto:hello@example.com" icon={Mail} color="#EA4335" label="Email" />
+                            <div className="flex gap-4 mt-4 flex-wrap">
+                                <SocialLink href={settings?.social_github || "#"} icon={Github} color="#333333" label="GitHub" />
+                                <SocialLink href={settings?.social_twitter || "#"} icon={Twitter} color="#1DA1F2" label="Twitter" />
+                                <SocialLink href={settings?.social_linkedin || "#"} icon={Linkedin} color="#0077b5" label="LinkedIn" />
+                                <SocialLink href={settings?.social_facebook || "#"} icon={Facebook} color="#1877F2" label="Facebook" />
+                                <SocialLink href={`mailto:${settings?.social_email || "hello@example.com"}`} icon={Mail} color="#EA4335" label="Email" />
                             </div>
                         </div>
                     </div>

@@ -8,11 +8,13 @@ import { Contact } from "@/components/Contact";
 
 import { getPosts } from "@/lib/blog";
 import { getCertificates } from "@/lib/certificates";
+import { getSettings } from "@/actions/settings";
 
 export default async function Home() {
-  const [posts, certificates] = await Promise.all([
+  const [posts, certificates, settings] = await Promise.all([
     getPosts(),
-    getCertificates()
+    getCertificates(),
+    getSettings()
   ]);
   const latestPosts = posts.slice(0, 3); // Only show top 3 on home
 
@@ -24,7 +26,7 @@ export default async function Home() {
       <Projects />
       <Timeline certificates={certificates} />
       <BlogPreview posts={latestPosts} />
-      <Contact />
+      <Contact settings={settings} />
     </div>
   );
 }
