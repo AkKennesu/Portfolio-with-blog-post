@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useRef } from "react"
 import { motion } from "framer-motion"
-import { Github, Twitter, Linkedin, Mail, Send, Facebook } from "lucide-react"
+import { Github, Twitter, Linkedin, Mail, Send, Facebook, Instagram, Youtube, Slack, Twitch, Globe, Link as LinkIcon } from "lucide-react"
 import { EncryptButton } from "@/components/EncryptButton"
 import { SocialLink } from "@/components/SocialLink"
 import { submitContact, type ContactState } from "@/actions/contact"
@@ -10,8 +10,21 @@ import { SettingsMap } from "@/actions/settings"
 
 const initialState: ContactState = {}
 
+const IconMap: Record<string, any> = {
+    Instagram: Instagram,
+    Youtube: Youtube,
+    Slack: Slack,
+    Twitch: Twitch,
+    Globe: Globe,
+    LinkIcon: LinkIcon,
+}
+
 export function Contact({ settings }: { settings?: SettingsMap }) {
     const [state, formAction, isPending] = useActionState(submitContact, initialState)
+
+    const customLinks = settings?.custom_social_links
+        ? JSON.parse(settings.custom_social_links) as { label: string, url: string, icon: string }[]
+        : []
     const formRef = useRef<HTMLFormElement>(null)
 
     useEffect(() => {
@@ -37,6 +50,19 @@ export function Contact({ settings }: { settings?: SettingsMap }) {
                                 <SocialLink href={settings?.social_linkedin || "#"} icon={Linkedin} color="#0077b5" label="LinkedIn" />
                                 <SocialLink href={settings?.social_facebook || "#"} icon={Facebook} color="#1877F2" label="Facebook" />
                                 <SocialLink href={`mailto:${settings?.social_email || "hello@example.com"}`} icon={Mail} color="#EA4335" label="Email" />
+
+                                {customLinks.map((link, i) => {
+                                    const Icon = IconMap[link.icon] || LinkIcon
+                                    return (
+                                        <SocialLink
+                                            key={i}
+                                            href={link.url || "#"}
+                                            icon={Icon}
+                                            color="var(--primary)"
+                                            label={link.label}
+                                        />
+                                    )
+                                })}
                             </div>
                         </div>
                     </div>

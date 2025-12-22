@@ -2,24 +2,76 @@
 
 import { useState, useTransition, useEffect } from "react"
 import { getSettings, updateSettings, type SettingsMap } from "@/actions/settings"
-import { Save, Palette, User, Loader2, ArrowLeft, RotateCcw, Github, Linkedin, Twitter, Facebook, Mail, Share2 } from "lucide-react"
+import {
+    Save, Palette, User, Loader2, ArrowLeft, RotateCcw, Github, Linkedin, Twitter,
+    Facebook, Mail, Share2, Plus, Trash2, Instagram, Youtube, Slack, Twitch, Globe, Link as LinkIcon
+} from "lucide-react"
 import Link from "next/link"
+
+type CustomLink = {
+    label: string
+    url: string
+    icon: string
+}
+
+const ICON_OPTIONS = [
+    { label: "Instagram", value: "Instagram", icon: Instagram },
+    { label: "YouTube", value: "Youtube", icon: Youtube },
+    { label: "Discord", value: "Slack", icon: Slack }, // Using Slack as a proxy for social chat if Discord not available, but let's see
+    { label: "Twitch", value: "Twitch", icon: Twitch },
+    { label: "Website", value: "Globe", icon: Globe },
+    { label: "Generic Link", value: "LinkIcon", icon: LinkIcon },
+]
+
+// Map string icon names to components for the settings UI
+const IconMap: Record<string, any> = {
+    Instagram: Instagram,
+    Youtube: Youtube,
+    Slack: Slack,
+    Twitch: Twitch,
+    Globe: Globe,
+    LinkIcon: LinkIcon,
+}
 
 export default function AdminSettingsPage() {
     const [settings, setSettings] = useState<SettingsMap | null>(null)
     const [isPending, startTransition] = useTransition()
     const [localColor, setLocalColor] = useState("#3b82f6")
     const [status, setStatus] = useState<{ type: 'success' | 'error', msg: string } | null>(null)
+    const [customLinks, setCustomLinks] = useState<CustomLink[]>([])
 
     useEffect(() => {
         getSettings().then(data => {
             setSettings(data)
             setLocalColor(data.primary_color)
+            try {
+                const parsed = JSON.parse(data.custom_social_links || "[]")
+                setCustomLinks(parsed)
+            } catch {
+                setCustomLinks([])
+            }
         })
     }, [])
 
+    const handleAddLink = () => {
+        setCustomLinks([...customLinks, { label: "", url: "", icon: "LinkIcon" }])
+    }
+
+    const handleRemoveLink = (index: number) => {
+        setCustomLinks(customLinks.filter((_, i) => i !== index))
+    }
+
+    const handleUpdateLink = (index: number, updates: Partial<CustomLink>) => {
+        const newLinks = [...customLinks]
+        newLinks[index] = { ...newLinks[index], ...updates }
+        setCustomLinks(newLinks)
+    }
+
     const handleSubmit = async (formData: FormData) => {
         setStatus(null)
+        // Add custom links as JSON to the formData
+        formData.set("custom_social_links", JSON.stringify(customLinks))
+
         startTransition(async () => {
             const result = await updateSettings(formData)
             if (result.success) {
@@ -44,7 +96,7 @@ export default function AdminSettingsPage() {
             <div className="mb-8 flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-bold">Site Settings</h1>
-                    <p className="text-muted-foreground mt-1">Customize your bio, brand colors, and social links.</p>
+                    <p className="text-muted-foreground mt-1">Customize your bio, brand colors, and social presence.</p>
                 </div>
                 <Link
                     href="/admin/dashboard"
@@ -133,57 +185,57 @@ export default function AdminSettingsPage() {
                     </div>
                 </div>
 
-                {/* Social Links Section */}
+                {/* Essential Social Links */}
                 <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-sm">
                     <div className="p-6 border-b border-border bg-muted/30">
                         <div className="flex items-center gap-3">
                             <Share2 className="h-5 w-5 text-primary" />
-                            <h2 className="text-xl font-semibold">Social Links</h2>
+                            <h2 className="text-xl font-semibold">Essential Social Links</h2>
                         </div>
                     </div>
                     <div className="p-6 space-y-6">
                         <div className="grid gap-6 sm:grid-cols-2">
                             <div className="grid gap-2">
                                 <label className="text-sm font-medium flex items-center gap-2">
-                                    <Github className="h-4 w-4" /> GitHub URL
+                                    <Github className="h-4 w-4" /> GitHub
                                 </label>
                                 <input
                                     name="social_github"
                                     defaultValue={settings.social_github}
-                                    placeholder="https://github.com/your-username"
+                                    placeholder="https://github.com/..."
                                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                                 />
                             </div>
                             <div className="grid gap-2">
                                 <label className="text-sm font-medium flex items-center gap-2">
-                                    <Linkedin className="h-4 w-4" /> LinkedIn URL
+                                    <Linkedin className="h-4 w-4" /> LinkedIn
                                 </label>
                                 <input
                                     name="social_linkedin"
                                     defaultValue={settings.social_linkedin}
-                                    placeholder="https://linkedin.com/in/your-username"
+                                    placeholder="https://linkedin.com/..."
                                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                                 />
                             </div>
                             <div className="grid gap-2">
                                 <label className="text-sm font-medium flex items-center gap-2">
-                                    <Twitter className="h-4 w-4" /> Twitter URL
+                                    <Twitter className="h-4 w-4" /> Twitter / X
                                 </label>
                                 <input
                                     name="social_twitter"
                                     defaultValue={settings.social_twitter}
-                                    placeholder="https://twitter.com/your-username"
+                                    placeholder="https://twitter.com/..."
                                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                                 />
                             </div>
                             <div className="grid gap-2">
                                 <label className="text-sm font-medium flex items-center gap-2">
-                                    <Facebook className="h-4 w-4" /> Facebook URL
+                                    <Facebook className="h-4 w-4" /> Facebook
                                 </label>
                                 <input
                                     name="social_facebook"
                                     defaultValue={settings.social_facebook}
-                                    placeholder="https://facebook.com/your-username"
+                                    placeholder="https://facebook.com/..."
                                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                                 />
                             </div>
@@ -194,11 +246,80 @@ export default function AdminSettingsPage() {
                                 <input
                                     name="social_email"
                                     defaultValue={settings.social_email}
-                                    placeholder="your-email@example.com"
+                                    placeholder="your@email.com"
                                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                                 />
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                {/* Custom Social Buttons */}
+                <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-sm">
+                    <div className="p-6 border-b border-border bg-muted/30 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <Plus className="h-5 w-5 text-primary" />
+                            <h2 className="text-xl font-semibold">Custom Buttons</h2>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={handleAddLink}
+                            className="bg-primary/10 text-primary hover:bg-primary/20 px-4 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2"
+                        >
+                            <Plus className="h-4 w-4" /> Add Custom Button
+                        </button>
+                    </div>
+                    <div className="p-6 space-y-4">
+                        {customLinks.length === 0 ? (
+                            <p className="text-center py-8 text-muted-foreground italic border-2 border-dashed border-border rounded-xl">
+                                No custom buttons added yet. Click &quot;Add Custom Button&quot; to begin.
+                            </p>
+                        ) : (
+                            <div className="grid gap-4">
+                                {customLinks.map((link, index) => (
+                                    <div key={index} className="flex flex-col sm:flex-row items-end gap-3 p-4 border border-border rounded-xl bg-muted/20">
+                                        <div className="grid gap-2 flex-1 w-full">
+                                            <label className="text-xs font-medium uppercase text-muted-foreground">Label</label>
+                                            <input
+                                                value={link.label}
+                                                onChange={(e) => handleUpdateLink(index, { label: e.target.value })}
+                                                placeholder="My Channel / Portfolio"
+                                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                            />
+                                        </div>
+                                        <div className="grid gap-2 flex-1 w-full">
+                                            <label className="text-xs font-medium uppercase text-muted-foreground">URL</label>
+                                            <input
+                                                value={link.url}
+                                                onChange={(e) => handleUpdateLink(index, { url: e.target.value })}
+                                                placeholder="https://..."
+                                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                            />
+                                        </div>
+                                        <div className="grid gap-2 w-full sm:w-32">
+                                            <label className="text-xs font-medium uppercase text-muted-foreground">Icon</label>
+                                            <select
+                                                value={link.icon}
+                                                onChange={(e) => handleUpdateLink(index, { icon: e.target.value })}
+                                                className="flex h-10 w-full rounded-md border border-input bg-background px-2 py-2 text-sm"
+                                            >
+                                                {ICON_OPTIONS.map(opt => (
+                                                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleRemoveLink(index)}
+                                            className="h-10 w-10 flex items-center justify-center rounded-md border border-destructive/20 text-destructive hover:bg-destructive/10 transition-colors"
+                                            title="Remove Link"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -214,7 +335,7 @@ export default function AdminSettingsPage() {
                     <button
                         type="button"
                         onClick={() => {
-                            setLocalColor("#3b82f6") // Reset to default logic could be added here
+                            setLocalColor("#3b82f6")
                         }}
                         className="flex items-center gap-2 px-4 py-2 text-sm font-medium hover:text-primary transition-colors"
                     >

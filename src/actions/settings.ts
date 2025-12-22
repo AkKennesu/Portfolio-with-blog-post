@@ -13,6 +13,7 @@ export type SettingsMap = {
     social_twitter: string
     social_facebook: string
     social_email: string
+    custom_social_links: string // JSON representation of { label: string, url: string, icon: string }[]
 }
 
 async function checkAuth() {
@@ -29,7 +30,8 @@ export async function getSettings(): Promise<SettingsMap> {
         social_linkedin: "#",
         social_twitter: "#",
         social_facebook: "#",
-        social_email: "hello@example.com"
+        social_email: "hello@example.com",
+        custom_social_links: "[]"
     }
 
     try {
@@ -65,7 +67,8 @@ export async function updateSettings(formData: FormData) {
             "social_linkedin",
             "social_twitter",
             "social_facebook",
-            "social_email"
+            "social_email",
+            "custom_social_links"
         ]
 
         for (const key of settingsToUpdate) {

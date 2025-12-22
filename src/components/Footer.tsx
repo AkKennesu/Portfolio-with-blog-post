@@ -1,8 +1,20 @@
 import Link from "next/link"
-import { Github, Twitter, Linkedin, Facebook } from "lucide-react"
+import { Github, Twitter, Linkedin, Facebook, Instagram, Youtube, Slack, Twitch, Globe, Link as LinkIcon } from "lucide-react"
 import { SettingsMap } from "@/actions/settings"
 
+const IconMap: Record<string, any> = {
+    Instagram: Instagram,
+    Youtube: Youtube,
+    Slack: Slack,
+    Twitch: Twitch,
+    Globe: Globe,
+    LinkIcon: LinkIcon,
+}
+
 export function Footer({ settings }: { settings?: SettingsMap }) {
+    const customLinks = settings?.custom_social_links
+        ? JSON.parse(settings.custom_social_links) as { label: string, url: string, icon: string }[]
+        : []
     return (
         <footer className="border-t border-white/5 bg-background pb-24 md:pb-0">
             <div className="container mx-auto flex flex-col items-center justify-between gap-4 py-10 md:h-24 md:flex-row md:py-0 px-4">
@@ -33,6 +45,21 @@ export function Footer({ settings }: { settings?: SettingsMap }) {
                     <Link href={settings?.social_facebook || "#"} target="_blank" className="text-muted-foreground hover:text-foreground">
                         <Facebook className="h-5 w-5" />
                     </Link>
+
+                    {customLinks.map((link, i) => {
+                        const Icon = IconMap[link.icon] || LinkIcon
+                        return (
+                            <Link
+                                key={i}
+                                href={link.url || "#"}
+                                target="_blank"
+                                className="text-muted-foreground hover:text-primary transition-colors"
+                                title={link.label}
+                            >
+                                <Icon className="h-5 w-5" />
+                            </Link>
+                        )
+                    })}
                 </div>
             </div>
         </footer>
