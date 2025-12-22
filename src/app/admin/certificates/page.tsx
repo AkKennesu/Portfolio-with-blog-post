@@ -6,7 +6,7 @@ import Link from "next/link"
 import { Plus, Edit, Image as ImageIcon, Database } from "lucide-react"
 import { deleteCertificate } from "@/actions/certificates"
 import { checkTablesExist } from "@/lib/db"
-import DeleteButton from "@/components/admin/DeleteButton"
+import CertListClient from "@/components/admin/CertListClient"
 
 export default async function AdminCertListPage() {
     noStore()
@@ -40,7 +40,10 @@ export default async function AdminCertListPage() {
     return (
         <div className="p-8">
             <div className="flex justify-between items-center mb-8">
-                <h1 className="text-3xl font-bold">Manage Certificates</h1>
+                <div className="space-y-1">
+                    <h1 className="text-3xl font-bold tracking-tight">Certificates</h1>
+                    <p className="text-sm text-muted-foreground">Manage your credentials and professional honors.</p>
+                </div>
                 <Link
                     href="/admin/certificates/new"
                     className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg font-medium hover:bg-primary/90 transition-colors"
@@ -50,54 +53,7 @@ export default async function AdminCertListPage() {
                 </Link>
             </div>
 
-            <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
-                <table className="w-full text-left">
-                    <thead>
-                        <tr className="bg-muted/50 border-b border-border">
-                            <th className="px-6 py-4 font-semibold text-sm w-20">Preview</th>
-                            <th className="px-6 py-4 font-semibold text-sm">Title</th>
-                            <th className="px-6 py-4 font-semibold text-sm">Year</th>
-                            <th className="px-6 py-4 font-semibold text-sm">Subtitle</th>
-                            <th className="px-6 py-4 font-semibold text-sm text-right">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border">
-                        {certs.map((cert) => (
-                            <tr key={cert.id || cert.title} className="hover:bg-muted/30 transition-colors">
-                                <td className="px-6 py-4">
-                                    <div className="h-10 w-10 rounded-md bg-muted overflow-hidden">
-                                        {cert.image ? (
-                                            <img src={cert.image} alt={cert.title} className="h-full w-full object-cover" />
-                                        ) : (
-                                            <div className="h-full w-full flex items-center justify-center">
-                                                <ImageIcon className="h-4 w-4 text-muted-foreground" />
-                                            </div>
-                                        )}
-                                    </div>
-                                </td>
-                                <td className="px-6 py-4 text-sm font-medium">{cert.title}</td>
-                                <td className="px-6 py-4 text-sm text-muted-foreground">{cert.year}</td>
-                                <td className="px-6 py-4 text-sm text-muted-foreground">{cert.subtitle}</td>
-                                <td className="px-6 py-4 text-right">
-                                    <div className="flex justify-end gap-2">
-                                        <Link
-                                            href={`/admin/certificates/edit/${cert.id}`}
-                                            className="p-2 text-muted-foreground hover:text-primary transition-colors"
-                                        >
-                                            <Edit className="h-4 w-4" />
-                                        </Link>
-                                        <DeleteButton
-                                            action={deleteCertificate}
-                                            id={cert.id!}
-                                            confirmMessage={`Are you sure you want to delete the certificate "${cert.title}"?`}
-                                        />
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+            <CertListClient certs={certs} />
         </div>
     )
 }

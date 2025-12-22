@@ -91,3 +91,22 @@ export async function deletePost(id: number) {
         return { success: false, error: "Deletion failed. Please try again." }
     }
 }
+export async function deletePosts(ids: number[]) {
+    try {
+        if (ids.length === 0) return { success: true }
+
+        // Use a loop or a specialized query for bulk deletion if your db lib supports it
+        // For simple implementations, we can iterate or use an IN clause if raw query supports it
+        for (const id of ids) {
+            await dbQuery`DELETE FROM blog_posts WHERE id = ${id}`
+        }
+
+        revalidatePath("/blog")
+        revalidatePath("/admin/blog")
+        revalidatePath("/", "layout")
+        return { success: true }
+    } catch (error) {
+        console.error("Failed to delete posts:", error)
+        return { success: false, error: "Bulk deletion failed. Please try again." }
+    }
+}

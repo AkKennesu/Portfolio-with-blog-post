@@ -78,3 +78,20 @@ export async function deleteMessage(id: number) {
         return { success: false, error: "Deletion failed" }
     }
 }
+export async function deleteMessages(ids: number[]) {
+    await checkAuth()
+    try {
+        if (ids.length === 0) return { success: true }
+
+        for (const id of ids) {
+            await dbQuery`DELETE FROM messages WHERE id = ${id}`
+        }
+
+        revalidatePath("/admin/messages")
+        revalidatePath("/", "layout")
+        return { success: true }
+    } catch (error) {
+        console.error("Failed to delete messages:", error)
+        return { success: false, error: "Bulk deletion failed" }
+    }
+}

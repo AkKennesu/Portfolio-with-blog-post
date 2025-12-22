@@ -6,7 +6,7 @@ import Link from "next/link"
 import { Plus, Edit, Database } from "lucide-react"
 import { deletePost } from "@/actions/blog"
 import { checkTablesExist } from "@/lib/db"
-import DeleteButton from "@/components/admin/DeleteButton"
+import BlogListClient from "@/components/admin/BlogListClient"
 
 export default async function AdminBlogListPage() {
     noStore()
@@ -40,7 +40,10 @@ export default async function AdminBlogListPage() {
     return (
         <div className="p-8">
             <div className="flex justify-between items-center mb-8">
-                <h1 className="text-3xl font-bold">Manage Blog Posts</h1>
+                <div className="space-y-1">
+                    <h1 className="text-3xl font-bold tracking-tight">Blog Posts</h1>
+                    <p className="text-sm text-muted-foreground">Manage and organize your technical articles.</p>
+                </div>
                 <Link
                     href="/admin/blog/new"
                     className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg font-medium hover:bg-primary/90 transition-colors"
@@ -50,42 +53,7 @@ export default async function AdminBlogListPage() {
                 </Link>
             </div>
 
-            <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
-                <table className="w-full text-left">
-                    <thead>
-                        <tr className="bg-muted/50 border-b border-border">
-                            <th className="px-6 py-4 font-semibold text-sm">Title</th>
-                            <th className="px-6 py-4 font-semibold text-sm">Date</th>
-                            <th className="px-6 py-4 font-semibold text-sm">Slug</th>
-                            <th className="px-6 py-4 font-semibold text-sm text-right">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border">
-                        {posts.map((post) => (
-                            <tr key={post.slug} className="hover:bg-muted/30 transition-colors">
-                                <td className="px-6 py-4 text-sm font-medium">{post.title}</td>
-                                <td className="px-6 py-4 text-sm text-muted-foreground">{post.date}</td>
-                                <td className="px-6 py-4 text-sm text-muted-foreground">{post.slug}</td>
-                                <td className="px-6 py-4 text-right">
-                                    <div className="flex justify-end gap-2">
-                                        <Link
-                                            href={`/admin/blog/edit/${post.slug}`}
-                                            className="p-2 text-muted-foreground hover:text-primary transition-colors"
-                                        >
-                                            <Edit className="h-4 w-4" />
-                                        </Link>
-                                        <DeleteButton
-                                            action={deletePost}
-                                            id={post.id!}
-                                            confirmMessage={`Are you sure you want to delete "${post.title}"?`}
-                                        />
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+            <BlogListClient posts={posts} />
         </div>
     )
 }

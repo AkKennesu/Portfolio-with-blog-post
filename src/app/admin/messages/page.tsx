@@ -3,7 +3,7 @@ import { getMessages } from "@/actions/messages"
 import { getSession } from "@/actions/admin"
 import { redirect } from "next/navigation"
 import { Mail, Inbox, Database } from "lucide-react"
-import { MessageItem } from "@/components/admin/MessageItem"
+import MessageListClient from "@/components/admin/MessageListClient"
 import { checkTablesExist } from "@/lib/db"
 import Link from "next/link"
 
@@ -40,35 +40,17 @@ export default async function AdminMessagesPage() {
         <div className="p-8 max-w-5xl mx-auto">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                 <div className="space-y-1">
-                    <h1 className="text-3xl font-bold flex items-center gap-3">
+                    <h1 className="text-3xl font-bold flex items-center gap-3 tracking-tight">
                         <Mail className="h-8 w-8 text-primary" />
                         Messages
                     </h1>
-                    <p className="text-muted-foreground text-sm">
+                    <p className="text-muted-foreground text-sm font-medium">
                         You have {unreadCount} unread message{unreadCount !== 1 ? 's' : ''}
                     </p>
                 </div>
             </div>
 
-            <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden min-h-[400px]">
-                {messages.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center p-12">
-                        <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
-                            <Inbox className="h-8 w-8 text-muted-foreground" />
-                        </div>
-                        <h3 className="text-xl font-semibold mb-2">No messages yet</h3>
-                        <p className="text-muted-foreground max-w-xs mx-auto">
-                            When someone contacts you through the website, their message will appear here.
-                        </p>
-                    </div>
-                ) : (
-                    <div className="divide-y divide-border">
-                        {messages.map((message) => (
-                            <MessageItem key={message.id} message={message} />
-                        ))}
-                    </div>
-                )}
-            </div>
+            <MessageListClient messages={messages} />
         </div>
     )
 }

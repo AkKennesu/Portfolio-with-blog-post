@@ -88,3 +88,20 @@ export async function deleteCertificate(id: number) {
         return { success: false, error: "Deletion failed. Please try again." }
     }
 }
+export async function deleteCertificates(ids: number[]) {
+    try {
+        if (ids.length === 0) return { success: true }
+
+        for (const id of ids) {
+            await dbQuery`DELETE FROM certificates WHERE id = ${id}`
+        }
+
+        revalidatePath("/")
+        revalidatePath("/admin/certificates")
+        revalidatePath("/", "layout")
+        return { success: true }
+    } catch (error) {
+        console.error("Failed to delete certificates:", error)
+        return { success: false, error: "Bulk deletion failed. Please try again." }
+    }
+}
