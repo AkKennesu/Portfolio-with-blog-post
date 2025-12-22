@@ -25,6 +25,7 @@ export const metadata: Metadata = {
 };
 
 import { getSettings } from "@/actions/settings";
+import { headers } from "next/headers";
 
 export default async function RootLayout({
   children,
@@ -32,6 +33,9 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const settings = await getSettings();
+  const headerList = await headers();
+  const pathname = headerList.get("x-invoke-path") || "";
+  const isAdmin = pathname.startsWith("/admin");
 
   return (
     <html lang="en" suppressHydrationWarning className={geo.variable}>
@@ -78,12 +82,12 @@ export default async function RootLayout({
           <SmoothScrolling>
             <SpotlightBackground />
             <ScrollProgress />
-            <MobileNav />
-            <Navbar />
+            {!isAdmin && <MobileNav />}
+            {!isAdmin && <Navbar />}
             <PageTransition>
-              <main className="flex-1 w-full flex flex-col pt-16">{children}</main>
+              <main className={`flex-1 w-full flex flex-col ${isAdmin ? "" : "pt-16"}`}>{children}</main>
             </PageTransition>
-            <Footer settings={settings} />
+            {!isAdmin && <Footer settings={settings} />}
           </SmoothScrolling>
         </ThemeProvider>
       </body>
