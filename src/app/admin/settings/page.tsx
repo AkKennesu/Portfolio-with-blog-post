@@ -23,16 +23,6 @@ const ICON_OPTIONS = [
     { label: "Generic Link", value: "LinkIcon", icon: LinkIcon },
 ]
 
-// Map string icon names to components for the settings UI
-const IconMap: Record<string, any> = {
-    Instagram: Instagram,
-    Youtube: Youtube,
-    Slack: Slack,
-    Twitch: Twitch,
-    Globe: Globe,
-    LinkIcon: LinkIcon,
-}
-
 export default function AdminSettingsPage() {
     const [settings, setSettings] = useState<SettingsMap | null>(null)
     const [isPending, startTransition] = useTransition()

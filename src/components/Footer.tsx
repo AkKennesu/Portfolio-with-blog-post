@@ -1,8 +1,8 @@
 import Link from "next/link"
-import { Github, Twitter, Linkedin, Facebook, Instagram, Youtube, Slack, Twitch, Globe, Link as LinkIcon } from "lucide-react"
+import { Github, Twitter, Linkedin, Facebook, Instagram, Youtube, Slack, Twitch, Globe, Link as LinkIcon, LucideIcon } from "lucide-react"
 import { SettingsMap } from "@/actions/settings"
 
-const IconMap: Record<string, any> = {
+const IconMap: Record<string, LucideIcon> = {
     Instagram: Instagram,
     Youtube: Youtube,
     Slack: Slack,

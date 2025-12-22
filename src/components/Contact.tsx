@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useRef } from "react"
 import { motion } from "framer-motion"
-import { Github, Twitter, Linkedin, Mail, Send, Facebook, Instagram, Youtube, Slack, Twitch, Globe, Link as LinkIcon } from "lucide-react"
+import { Github, Twitter, Linkedin, Mail, Send, Facebook, Instagram, Youtube, Slack, Twitch, Globe, Link as LinkIcon, LucideIcon } from "lucide-react"
 import { EncryptButton } from "@/components/EncryptButton"
 import { SocialLink } from "@/components/SocialLink"
 import { submitContact, type ContactState } from "@/actions/contact"
@@ -10,7 +10,7 @@ import { SettingsMap } from "@/actions/settings"
 
 const initialState: ContactState = {}
 
-const IconMap: Record<string, any> = {
+const IconMap: Record<string, LucideIcon> = {
     Instagram: Instagram,
     Youtube: Youtube,
     Slack: Slack,
