@@ -6,9 +6,8 @@ import Link from "next/link"
 import { useActiveSection } from "@/hooks/use-active-section"
 import { navItems } from "@/lib/data"
 import { cn } from "@/lib/utils"
-import { SettingsMap } from "@/actions/settings"
 
-export const MobileNav = ({ settings }: { settings?: SettingsMap }) => {
+export const MobileNav = () => {
     return (
         <div className="fixed bottom-6 left-0 right-0 z-50 flex justify-center md:hidden px-4 pointer-events-none">
             <SlideTabs />
