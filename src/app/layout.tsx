@@ -82,8 +82,8 @@ export default async function RootLayout({
           <SmoothScrolling>
             <SpotlightBackground />
             <ScrollProgress />
-            {!isAdmin && <MobileNav />}
-            {!isAdmin && <Navbar />}
+            {!isAdmin && <MobileNav settings={settings} />}
+            {!isAdmin && <Navbar settings={settings} />}
             <PageTransition>
               <main className={`flex-1 w-full flex flex-col ${isAdmin ? "" : "pt-16"}`}>{children}</main>
             </PageTransition>

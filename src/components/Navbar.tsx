@@ -7,10 +7,14 @@ import { ModeToggle } from "./mode-toggle"
 import { navItems } from "@/lib/data"
 import { useScroll } from "@/hooks/use-scroll"
 import { useActiveSection } from "@/hooks/use-active-section"
+import { SettingsMap } from "@/actions/settings"
 
-export function Navbar() {
+export function Navbar({ settings }: { settings?: SettingsMap }) {
     const scrolled = useScroll()
     const activeSection = useActiveSection()
+
+    // Use uploaded CV if it exists, otherwise fallback to local asset
+    const cvHref = settings?.cv_file || "/cv.pdf"
 
     return (
         <header
@@ -46,7 +50,8 @@ export function Navbar() {
                     ))}
                     <ModeToggle />
                     <a
-                        href="/cv.pdf"
+                        href={cvHref}
+                        download="Arn_Kenneth_CV"
                         target="_blank"
                         rel="noopener noreferrer"
                         className={cn(

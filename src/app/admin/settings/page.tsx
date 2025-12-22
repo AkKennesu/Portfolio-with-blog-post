@@ -1,10 +1,10 @@
 "use client"
 
-import { useState, useTransition, useEffect } from "react"
+import { useState, useTransition, useEffect, useRef } from "react"
 import { getSettings, updateSettings, type SettingsMap } from "@/actions/settings"
 import {
     Save, Palette, User, Loader2, ArrowLeft, RotateCcw, Github, Linkedin, Twitter,
-    Facebook, Mail, Share2, Plus, Trash2, Instagram, Youtube, Slack, Twitch, Globe, Link as LinkIcon
+    Facebook, Mail, Share2, Plus, Trash2, Instagram, Youtube, Slack, Twitch, Globe, Link as LinkIcon, FileText, Upload, CheckCircle2
 } from "lucide-react"
 import Link from "next/link"
 
@@ -34,11 +34,16 @@ export default function AdminSettingsPage() {
     const [localColor, setLocalColor] = useState("#3b82f6")
     const [status, setStatus] = useState<{ type: 'success' | 'error', msg: string } | null>(null)
     const [customLinks, setCustomLinks] = useState<CustomLink[]>([])
+    const [cvBase64, setCvBase64] = useState<string>("")
+    const [cvName, setCvName] = useState<string>("")
+    const [isUploading, setIsUploading] = useState(false)
+    const cvInputRef = useRef<HTMLInputElement>(null)
 
     useEffect(() => {
         getSettings().then(data => {
             setSettings(data)
             setLocalColor(data.primary_color)
+            setCvBase64(data.cv_file || "")
             try {
                 const parsed = JSON.parse(data.custom_social_links || "[]")
                 setCustomLinks(parsed)
@@ -62,9 +67,24 @@ export default function AdminSettingsPage() {
         setCustomLinks(newLinks)
     }
 
+    const handleCvUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (!file) return
+
+        setIsUploading(true)
+        setCvName(file.name)
+        const reader = new FileReader()
+        reader.onloadend = () => {
+            setCvBase64(reader.result as string)
+            setIsUploading(false)
+        }
+        reader.readAsDataURL(file)
+    }
+
     const handleSubmit = async (formData: FormData) => {
         setStatus(null)
         formData.set("custom_social_links", JSON.stringify(customLinks))
+        formData.set("cv_file", cvBase64)
 
         startTransition(async () => {
             const result = await updateSettings(formData)
@@ -89,7 +109,7 @@ export default function AdminSettingsPage() {
         <div className="p-8 max-w-4xl mx-auto">
             <div className="mb-8 flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold">Site Settings</h1>
+                    <h1 className="text-3xl font-bold">Personal Info&apos;s</h1>
                     <p className="text-muted-foreground mt-1">Customize your bio, brand colors, and social presence.</p>
                 </div>
                 <Link
@@ -245,9 +265,75 @@ export default function AdminSettingsPage() {
                                 ))}
                             </div>
                         )}
-                        <p className="text-xs text-muted-foreground mt-2">
-                            Note: Icons will automatically use their brand colors (e.g., YouTube remains red) on the portfolio site.
-                        </p>
+                    </div>
+                </div>
+
+                {/* CV Upload Section */}
+                <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-sm">
+                    <div className="p-6 border-b border-border bg-muted/30">
+                        <div className="flex items-center gap-3">
+                            <FileText className="h-5 w-5 text-primary" />
+                            <h2 className="text-xl font-semibold">Resume / CV</h2>
+                        </div>
+                    </div>
+                    <div className="p-6 space-y-6">
+                        <div className="grid gap-2">
+                            <label className="text-sm font-medium">Upload Curriculum Vitae</label>
+                            <p className="text-xs text-muted-foreground mb-2">Supported formats: PDF, Word (.doc, .docx)</p>
+
+                            <div className="grid sm:grid-cols-2 gap-6">
+                                <div
+                                    onClick={() => cvInputRef.current?.click()}
+                                    className="border-2 border-dashed border-border rounded-xl p-8 flex flex-col items-center justify-center gap-3 hover:bg-muted/50 cursor-pointer transition-colors text-center"
+                                >
+                                    <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                                        <Upload className="h-6 w-6" />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="text-sm font-semibold">Click to upload new CV</p>
+                                        <p className="text-xs text-muted-foreground">or drag and drop here</p>
+                                    </div>
+                                    <input
+                                        type="file"
+                                        ref={cvInputRef}
+                                        onChange={handleCvUpload}
+                                        accept=".pdf,.doc,.docx"
+                                        className="hidden"
+                                    />
+                                </div>
+
+                                <div className="flex flex-col justify-center items-center p-6 border border-border rounded-xl bg-muted/10">
+                                    {isUploading ? (
+                                        <div className="flex flex-col items-center gap-2">
+                                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                                            <p className="text-sm font-medium uppercase tracking-wider text-muted-foreground">Uploading...</p>
+                                        </div>
+                                    ) : cvBase64 ? (
+                                        <div className="flex flex-col items-center gap-3 text-center">
+                                            <div className="h-12 w-12 rounded-xl bg-green-500/10 flex items-center justify-center text-green-500">
+                                                <CheckCircle2 className="h-7 w-7" />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <p className="text-sm font-bold text-green-600">CV Ready for Save</p>
+                                                <p className="text-[10px] text-muted-foreground truncate max-w-[150px]">{cvName || "File successfully prepared"}</p>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => setCvBase64("")}
+                                                className="text-[10px] font-bold text-destructive hover:underline uppercase"
+                                            >
+                                                Clear Selection
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div className="flex flex-col items-center gap-2 opacity-50">
+                                            <FileText className="h-8 w-8 text-muted-foreground" />
+                                            <p className="text-xs font-medium uppercase">No file selected</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -272,7 +358,7 @@ export default function AdminSettingsPage() {
                     </button>
                     <button
                         type="submit"
-                        disabled={isPending}
+                        disabled={isPending || isUploading}
                         className="flex items-center gap-2 bg-primary text-primary-foreground px-8 py-2 rounded-lg font-semibold hover:bg-primary/90 transition-all disabled:opacity-50"
                     >
                         {isPending ? (

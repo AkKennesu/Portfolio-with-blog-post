@@ -9,6 +9,7 @@ export type SettingsMap = {
     about_me_2: string
     primary_color: string
     custom_social_links: string // JSON representation of { label: string, url: string, icon: string }[]
+    cv_file: string // Base64 string of PDF or Word file
 }
 
 async function checkAuth() {
@@ -21,7 +22,8 @@ export async function getSettings(): Promise<SettingsMap> {
         about_me_1: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam non neque est. Sed vel pretium massa. Donec eget nibh a magna feugiat rutrum.",
         about_me_2: "Vivamus at dui mollis, finibus justo vitae, accumsan nullam. Phasellus vestibulum hendrerit ex, ut ullamcorper arcu finibus a. Fusce et nibh quist.",
         primary_color: "#3b82f6", // Default blue-500
-        custom_social_links: "[]"
+        custom_social_links: "[]",
+        cv_file: ""
     }
 
     try {
@@ -53,7 +55,8 @@ export async function updateSettings(formData: FormData) {
             "about_me_1",
             "about_me_2",
             "primary_color",
-            "custom_social_links"
+            "custom_social_links",
+            "cv_file"
         ]
 
         for (const key of settingsToUpdate) {
