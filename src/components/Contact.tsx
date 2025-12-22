@@ -2,7 +2,10 @@
 
 import { useActionState, useEffect, useRef } from "react"
 import { motion } from "framer-motion"
-import { Github, Twitter, Linkedin, Mail, Send, Facebook, Instagram, Youtube, Slack, Twitch, Globe, Link as LinkIcon, LucideIcon } from "lucide-react"
+import {
+    Github, Twitter, Linkedin, Mail, Send, Facebook, Instagram, Youtube,
+    Slack, Twitch, Globe, Link as LinkIcon, LucideIcon
+} from "lucide-react"
 import { EncryptButton } from "@/components/EncryptButton"
 import { SocialLink } from "@/components/SocialLink"
 import { submitContact, type ContactState } from "@/actions/contact"
@@ -10,13 +13,18 @@ import { SettingsMap } from "@/actions/settings"
 
 const initialState: ContactState = {}
 
-const IconMap: Record<string, LucideIcon> = {
-    Instagram: Instagram,
-    Youtube: Youtube,
-    Slack: Slack,
-    Twitch: Twitch,
-    Globe: Globe,
-    LinkIcon: LinkIcon,
+export const SOCIAL_PLATFORMS: Record<string, { icon: LucideIcon, color: string }> = {
+    Github: { icon: Github, color: "#333333" },
+    Linkedin: { icon: Linkedin, color: "#0077b5" },
+    Twitter: { icon: Twitter, color: "#1DA1F2" },
+    Facebook: { icon: Facebook, color: "#1877F2" },
+    Instagram: { icon: Instagram, color: "#E4405F" },
+    Youtube: { icon: Youtube, color: "#FF0000" },
+    Slack: { icon: Slack, color: "#5865F2" },
+    Twitch: { icon: Twitch, color: "#9146FF" },
+    Mail: { icon: Mail, color: "#EA4335" },
+    Globe: { icon: Globe, color: "var(--primary)" },
+    LinkIcon: { icon: LinkIcon, color: "var(--primary)" },
 }
 
 export function Contact({ settings }: { settings?: SettingsMap }) {
@@ -25,6 +33,7 @@ export function Contact({ settings }: { settings?: SettingsMap }) {
     const customLinks = settings?.custom_social_links
         ? JSON.parse(settings.custom_social_links) as { label: string, url: string, icon: string }[]
         : []
+
     const formRef = useRef<HTMLFormElement>(null)
 
     useEffect(() => {
@@ -45,20 +54,17 @@ export function Contact({ settings }: { settings?: SettingsMap }) {
 
                         <div className="flex flex-col gap-4">
                             <div className="flex gap-4 mt-4 flex-wrap">
-                                <SocialLink href={settings?.social_github || "#"} icon={Github} color="#333333" label="GitHub" />
-                                <SocialLink href={settings?.social_twitter || "#"} icon={Twitter} color="#1DA1F2" label="Twitter" />
-                                <SocialLink href={settings?.social_linkedin || "#"} icon={Linkedin} color="#0077b5" label="LinkedIn" />
-                                <SocialLink href={settings?.social_facebook || "#"} icon={Facebook} color="#1877F2" label="Facebook" />
-                                <SocialLink href={`mailto:${settings?.social_email || "hello@example.com"}`} icon={Mail} color="#EA4335" label="Email" />
-
                                 {customLinks.map((link, i) => {
-                                    const Icon = IconMap[link.icon] || LinkIcon
+                                    const config = SOCIAL_PLATFORMS[link.icon] || SOCIAL_PLATFORMS.LinkIcon
+                                    const Icon = config.icon
+                                    const href = link.icon === "Mail" ? `mailto:${link.url}` : link.url
+
                                     return (
                                         <SocialLink
                                             key={i}
-                                            href={link.url || "#"}
+                                            href={href || "#"}
                                             icon={Icon}
-                                            color="var(--primary)"
+                                            color={config.color}
                                             label={link.label}
                                         />
                                     )

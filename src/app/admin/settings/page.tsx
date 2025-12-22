@@ -15,10 +15,15 @@ type CustomLink = {
 }
 
 const ICON_OPTIONS = [
+    { label: "GitHub", value: "Github", icon: Github },
+    { label: "LinkedIn", value: "Linkedin", icon: Linkedin },
+    { label: "Twitter / X", value: "Twitter", icon: Twitter },
+    { label: "Facebook", value: "Facebook", icon: Facebook },
     { label: "Instagram", value: "Instagram", icon: Instagram },
     { label: "YouTube", value: "Youtube", icon: Youtube },
-    { label: "Discord", value: "Slack", icon: Slack }, // Using Slack as a proxy for social chat if Discord not available, but let's see
+    { label: "Discord", value: "Slack", icon: Slack },
     { label: "Twitch", value: "Twitch", icon: Twitch },
+    { label: "Public Email", value: "Mail", icon: Mail },
     { label: "Website", value: "Globe", icon: Globe },
     { label: "Generic Link", value: "LinkIcon", icon: LinkIcon },
 ]
@@ -59,7 +64,6 @@ export default function AdminSettingsPage() {
 
     const handleSubmit = async (formData: FormData) => {
         setStatus(null)
-        // Add custom links as JSON to the formData
         formData.set("custom_social_links", JSON.stringify(customLinks))
 
         startTransition(async () => {
@@ -175,94 +179,25 @@ export default function AdminSettingsPage() {
                     </div>
                 </div>
 
-                {/* Essential Social Links */}
-                <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-sm">
-                    <div className="p-6 border-b border-border bg-muted/30">
-                        <div className="flex items-center gap-3">
-                            <Share2 className="h-5 w-5 text-primary" />
-                            <h2 className="text-xl font-semibold">Essential Social Links</h2>
-                        </div>
-                    </div>
-                    <div className="p-6 space-y-6">
-                        <div className="grid gap-6 sm:grid-cols-2">
-                            <div className="grid gap-2">
-                                <label className="text-sm font-medium flex items-center gap-2">
-                                    <Github className="h-4 w-4" /> GitHub
-                                </label>
-                                <input
-                                    name="social_github"
-                                    defaultValue={settings.social_github}
-                                    placeholder="https://github.com/..."
-                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                                />
-                            </div>
-                            <div className="grid gap-2">
-                                <label className="text-sm font-medium flex items-center gap-2">
-                                    <Linkedin className="h-4 w-4" /> LinkedIn
-                                </label>
-                                <input
-                                    name="social_linkedin"
-                                    defaultValue={settings.social_linkedin}
-                                    placeholder="https://linkedin.com/..."
-                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                                />
-                            </div>
-                            <div className="grid gap-2">
-                                <label className="text-sm font-medium flex items-center gap-2">
-                                    <Twitter className="h-4 w-4" /> Twitter / X
-                                </label>
-                                <input
-                                    name="social_twitter"
-                                    defaultValue={settings.social_twitter}
-                                    placeholder="https://twitter.com/..."
-                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                                />
-                            </div>
-                            <div className="grid gap-2">
-                                <label className="text-sm font-medium flex items-center gap-2">
-                                    <Facebook className="h-4 w-4" /> Facebook
-                                </label>
-                                <input
-                                    name="social_facebook"
-                                    defaultValue={settings.social_facebook}
-                                    placeholder="https://facebook.com/..."
-                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                                />
-                            </div>
-                            <div className="grid gap-2 sm:col-span-2">
-                                <label className="text-sm font-medium flex items-center gap-2">
-                                    <Mail className="h-4 w-4" /> Public Email
-                                </label>
-                                <input
-                                    name="social_email"
-                                    defaultValue={settings.social_email}
-                                    placeholder="your@email.com"
-                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Custom Social Buttons */}
+                {/* Consolidated Social Links Section */}
                 <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-sm">
                     <div className="p-6 border-b border-border bg-muted/30 flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <Plus className="h-5 w-5 text-primary" />
-                            <h2 className="text-xl font-semibold">Custom Buttons</h2>
+                            <Share2 className="h-5 w-5 text-primary" />
+                            <h2 className="text-xl font-semibold">Social Links</h2>
                         </div>
                         <button
                             type="button"
                             onClick={handleAddLink}
                             className="bg-primary/10 text-primary hover:bg-primary/20 px-4 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2"
                         >
-                            <Plus className="h-4 w-4" /> Add Custom Button
+                            <Plus className="h-4 w-4" /> Add Link
                         </button>
                     </div>
                     <div className="p-6 space-y-4">
                         {customLinks.length === 0 ? (
                             <p className="text-center py-8 text-muted-foreground italic border-2 border-dashed border-border rounded-xl">
-                                No custom buttons added yet. Click &quot;Add Custom Button&quot; to begin.
+                                No social links added yet. Click &quot;Add Link&quot; to begin.
                             </p>
                         ) : (
                             <div className="grid gap-4">
@@ -273,7 +208,7 @@ export default function AdminSettingsPage() {
                                             <input
                                                 value={link.label}
                                                 onChange={(e) => handleUpdateLink(index, { label: e.target.value })}
-                                                placeholder="My Channel / Portfolio"
+                                                placeholder="e.g. My GitHub"
                                                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                                             />
                                         </div>
@@ -286,8 +221,8 @@ export default function AdminSettingsPage() {
                                                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                                             />
                                         </div>
-                                        <div className="grid gap-2 w-full sm:w-32">
-                                            <label className="text-xs font-medium uppercase text-muted-foreground">Icon</label>
+                                        <div className="grid gap-2 w-full sm:w-40">
+                                            <label className="text-xs font-medium uppercase text-muted-foreground">Platform Icon</label>
                                             <select
                                                 value={link.icon}
                                                 onChange={(e) => handleUpdateLink(index, { icon: e.target.value })}
@@ -310,6 +245,9 @@ export default function AdminSettingsPage() {
                                 ))}
                             </div>
                         )}
+                        <p className="text-xs text-muted-foreground mt-2">
+                            Note: Icons will automatically use their brand colors (e.g., YouTube remains red) on the portfolio site.
+                        </p>
                     </div>
                 </div>
 
