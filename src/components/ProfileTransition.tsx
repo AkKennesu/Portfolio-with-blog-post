@@ -121,11 +121,11 @@ export default function ProfileTransition({ image1, image2, width = 600, height 
 
                 const positions = bufferGeometry.attributes.position.array as Float32Array
 
-                const minDuration = 0.8
-                const maxDuration = 1.2
-                const maxDelayX = 0.9
-                const maxDelayY = 0.125
-                const stretch = 0.11
+                const minDuration = 0.35
+                const maxDuration = 0.55
+                const maxDelayX = 0.35
+                const maxDelayY = 0.08
+                const stretch = 0.06
 
                 const centroid = new THREE.Vector3()
                 const vBase = new THREE.Vector3()
@@ -227,38 +227,37 @@ export default function ProfileTransition({ image1, image2, width = 600, height 
             scene.add(mesh1)
             scene.add(mesh2)
 
-            // GSAP
-            const timelineData = {
-                tl: gsap.timeline({
-                    paused: true,
-                    repeat: -1,
-                    yoyo: true,
-                    repeatDelay: 10
-                }),
-            }
+            // GSAP Timeline (Snappy & Responsive)
+            const tl = gsap.timeline({
+                paused: true,
+            })
 
-            const totalDuration = 1.2 + 0.9 + 0.125 + 0.11
+            const totalDuration = 0.55 + 0.35 + 0.08 + 0.06
 
-            timelineData.tl.to(mat1.uniforms.uTime, {
+            tl.to(mat1.uniforms.uTime, {
                 value: totalDuration,
-                duration: 2.0,
-                ease: "power2.inOut"
+                duration: 0.5,
+                ease: "power2.out"
             }, 0)
-                .to(mat2.uniforms.uTime, {
-                    value: totalDuration,
-                    duration: 2.0,
-                    ease: "power2.inOut"
-                }, 0)
+            .to(mat2.uniforms.uTime, {
+                value: totalDuration,
+                duration: 0.5,
+                ease: "power2.out"
+            }, 0)
 
-            // Interaction: Start loop on first hover
+            // Interaction: Only change on hover (play forward on enter, reverse back on leave)
             const el = containerRef.current
             const onEnter = () => {
-                if (timelineData.tl.paused()) {
-                    timelineData.tl.play()
-                }
+                tl.play()
+            }
+            const onLeave = () => {
+                tl.reverse()
             }
 
-            if (el) el.addEventListener('mouseenter', onEnter)
+            if (el) {
+                el.addEventListener('mouseenter', onEnter)
+                el.addEventListener('mouseleave', onLeave)
+            }
 
             const animate = () => {
                 frameId = requestAnimationFrame(animate)
@@ -270,8 +269,10 @@ export default function ProfileTransition({ image1, image2, width = 600, height 
                 cancelAnimationFrame(frameId)
                 if (el) {
                     el.removeEventListener('mouseenter', onEnter)
+                    el.removeEventListener('mouseleave', onLeave)
                     el.innerHTML = ''
                 }
+                tl.kill()
                 renderer.dispose()
                 geo1.dispose()
                 geo2.dispose()

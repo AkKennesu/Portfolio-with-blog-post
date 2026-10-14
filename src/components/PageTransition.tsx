@@ -3,11 +3,11 @@
 import { motion, AnimatePresence } from "framer-motion"
 import { usePathname } from "next/navigation"
 import { LayoutRouterContext } from "next/dist/shared/lib/app-router-context.shared-runtime"
-import { useContext, useRef } from "react"
+import { useContext, useState } from "react"
 
 function FrozenRouter(props: { children: React.ReactNode }) {
     const context = useContext(LayoutRouterContext)
-    const frozen = useRef(context).current
+    const [frozen] = useState(context)
 
     return (
         <LayoutRouterContext.Provider value={frozen}>

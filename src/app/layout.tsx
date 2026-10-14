@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Script from "next/script";
 import { Geo } from "next/font/google"; // Using Geo as requested
 import "./globals.css";
 import { Navbar } from "@/components/Navbar";
@@ -38,7 +37,7 @@ export default async function RootLayout({
   const isAdmin = pathname.startsWith("/admin");
 
   return (
-    <html lang="en" suppressHydrationWarning className={geo.variable}>
+    <html lang="en" suppressHydrationWarning className={`${geo.variable} dark`} style={{ colorScheme: "dark" }}>
       <head>
         <style dangerouslySetInnerHTML={{
           __html: `
@@ -50,33 +49,15 @@ export default async function RootLayout({
             }
           `
         }} />
-        {process.env.NODE_ENV === "development" && (
-          <>
-            <Script
-              src="//unpkg.com/react-grab/dist/index.global.js"
-              crossOrigin="anonymous"
-              strategy="beforeInteractive"
-            />
-            <Script
-              src="//unpkg.com/@react-grab/claude-code/dist/client.global.js"
-              strategy="lazyOnload"
-            />
-          </>
-        )}
-        {process.env.NODE_ENV === "development" && (
-          <Script
-            src="//unpkg.com/@react-grab/gemini/dist/client.global.js"
-            strategy="lazyOnload"
-          />
-        )}
       </head>
       <body
         className={`antialiased min-h-screen flex flex-col bg-background text-foreground font-sans text-lg`}
       >
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
-          enableSystem
+          defaultTheme="dark"
+          forcedTheme="dark"
+          enableSystem={false}
           disableTransitionOnChange
         >
           <SmoothScrolling>

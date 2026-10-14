@@ -27,6 +27,9 @@ export async function getSettings(): Promise<SettingsMap> {
     }
 
     try {
+        if (!process.env.POSTGRES_URL) {
+            return defaults
+        }
         const { rows } = await dbQuery`SELECT key, value FROM site_settings`
         if (rows.length === 0) return defaults
 
