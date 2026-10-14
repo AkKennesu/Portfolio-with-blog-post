@@ -1,9 +1,8 @@
 "use client"
 
 import Link from "next/link"
-import { cn } from "@/lib/utils"
+import { cn, scrollToSection } from "@/lib/utils"
 import { Download } from "lucide-react"
-import { ModeToggle } from "./mode-toggle"
 import { navItems } from "@/lib/data"
 import { useScroll } from "@/hooks/use-scroll"
 import { useActiveSection } from "@/hooks/use-active-section"
@@ -40,6 +39,7 @@ export function Navbar({ settings }: { settings?: SettingsMap }) {
                         <Link
                             key={item.href}
                             href={item.href}
+                            onClick={(e) => scrollToSection(e, item.href)}
                             className={cn(
                                 "nav-link-hover block px-4 py-2 text-sm font-medium transition-colors",
                                 activeSection === item.href ? "text-primary" : "text-muted-foreground"
@@ -48,7 +48,6 @@ export function Navbar({ settings }: { settings?: SettingsMap }) {
                             {item.name}
                         </Link>
                     ))}
-                    <ModeToggle />
                     <a
                         href={cvHref}
                         download="Arn_Kenneth_CV"
@@ -63,9 +62,18 @@ export function Navbar({ settings }: { settings?: SettingsMap }) {
                     </a>
                 </nav>
 
-                {/* Mobile Mode Toggle (since menu is gone) */}
+                {/* Mobile CV quick access */}
                 <div className="flex items-center gap-2 md:hidden">
-                    <ModeToggle />
+                    <a
+                        href={cvHref}
+                        download="Arn_Kenneth_CV"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex h-8 items-center justify-center rounded-md border border-primary/30 px-3 text-xs font-medium text-foreground hover:text-primary transition-colors"
+                    >
+                        <Download className="mr-1.5 h-3.5 w-3.5" />
+                        CV
+                    </a>
                 </div>
             </div>
         </header>
