@@ -2,6 +2,7 @@ import { getPost, getPosts } from "@/lib/blog"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
+import { sanitizeContent } from "@/lib/sanitize"
 
 export async function generateStaticParams() {
     const posts = await getPosts()
@@ -43,7 +44,7 @@ export default async function BlogPostPage({
 
             <div
                 className="prose prose-lg dark:prose-invert mx-auto"
-                dangerouslySetInnerHTML={{ __html: post.content }}
+                dangerouslySetInnerHTML={{ __html: sanitizeContent(post.content) }}
             />
         </article>
     )

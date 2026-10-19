@@ -81,6 +81,10 @@ export function Contact({ settings }: { settings?: SettingsMap }) {
                         viewport={{ once: true }}
                         className="grid gap-6"
                     >
+                        {/* Honeypot field for bot spam prevention */}
+                        <div style={{ display: "none" }} aria-hidden="true">
+                            <input type="text" name="website_bot" tabIndex={-1} autoComplete="off" />
+                        </div>
                         <div className="grid gap-2">
                             <label htmlFor="name" className="text-sm font-medium">Name</label>
                             <input

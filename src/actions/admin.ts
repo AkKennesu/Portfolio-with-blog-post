@@ -1,105 +1,100 @@
-"use server"
+"use server";
 
-import { cookies } from "next/headers"
-import { SignJWT, jwtVerify } from "jose"
-import { dbQuery } from "@/lib/db"
-import { redirect } from "next/navigation"
-import { revalidatePath } from "next/cache"
-
-const SECRET_KEY = new TextEncoder().encode(process.env.ADMIN_JWT_SECRET || "fallback-secret-key-change-it")
-const SESSION_DURATION = 60 * 60 * 24 // 24 hours
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
+import {
+  createAdminSessionToken,
+  getAdminSession,
+  requireAdminAuth,
+  verifyAdminPassword,
+  SESSION_COOKIE_NAME,
+  SESSION_DURATION_SECONDS,
+  type AdminSessionPayload,
+} from "@/lib/auth";
+import { CertificateRepository } from "@/repositories/certificate.repo";
+import { dbQuery } from "@/lib/db";
 
 export type AdminState = {
-    error?: string
-    success?: boolean
-}
+  error?: string;
+  success?: boolean;
+};
 
 export async function login(prevState: AdminState, formData: FormData): Promise<AdminState> {
-    const password = formData.get("password") as string
-    const adminPassword = process.env.ADMIN_PASSWORD
+  const password = formData.get("password") as string;
+  const adminPassword = process.env.ADMIN_PASSWORD;
 
-    if (!adminPassword) {
-        return { error: "Admin password not configured in environment" }
-    }
+  if (!adminPassword) {
+    return { error: "Admin authentication is not configured in server environment." };
+  }
 
-    if (password !== adminPassword) {
-        return { error: "Invalid password" }
-    }
+  // Constant-time hash verification to prevent timing attacks
+  const isValid = verifyAdminPassword(password);
+  if (!isValid) {
+    return { error: "Invalid admin password. Access denied." };
+  }
 
-    // Create session
-    const expires = new Date(Date.now() + SESSION_DURATION * 1000)
-    const session = await new SignJWT({ role: "admin" })
-        .setProtectedHeader({ alg: "HS256" })
-        .setIssuedAt()
-        .setExpirationTime("24h")
-        .sign(SECRET_KEY)
+  const sessionToken = await createAdminSessionToken("admin");
+  const expires = new Date(Date.now() + SESSION_DURATION_SECONDS * 1000);
 
-    const cookieStore = await cookies()
-    cookieStore.set("admin_session", session, {
-        expires,
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        path: "/",
-    })
+  const cookieStore = await cookies();
+  cookieStore.set(SESSION_COOKIE_NAME, sessionToken, {
+    expires,
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+  });
 
-    redirect("/admin/dashboard")
+  redirect("/admin/dashboard");
 }
 
-export async function logout() {
-    const cookieStore = await cookies()
-    cookieStore.delete("admin_session")
-    redirect("/admin/login")
+export async function logout(): Promise<void> {
+  const cookieStore = await cookies();
+  cookieStore.delete(SESSION_COOKIE_NAME);
+  redirect("/admin/login");
 }
 
-export async function getSession() {
-    const cookieStore = await cookies()
-    const session = cookieStore.get("admin_session")?.value
-    if (!session) return null
-
-    try {
-        const { payload } = await jwtVerify(session, SECRET_KEY, {
-            algorithms: ["HS256"],
-        })
-        return payload
-    } catch {
-        return null
-    }
+export async function getSession(): Promise<AdminSessionPayload | null> {
+  return await getAdminSession();
 }
 
-export async function migrateData() {
-    const { posts } = await import("@/lib/blog")
-    const { achievementItems } = await import("@/lib/data")
+/**
+ * Sync static portfolio items to database using atomic ON CONFLICT upserts.
+ * Protected: requires active admin session.
+ */
+export async function migrateData(): Promise<void> {
+  await requireAdminAuth();
 
-    // Migrate Blog Posts
-    for (const post of posts) {
-        await dbQuery`
-            INSERT INTO blog_posts (slug, title, excerpt, date, content)
-            VALUES (${post.slug}, ${post.title}, ${post.excerpt}, ${post.date}, ${post.content})
-            ON CONFLICT (slug) DO NOTHING
-        `
-    }
+  const { posts } = await import("@/lib/blog");
+  const { achievementItems } = await import("@/lib/data");
 
-    // Migrate Certificates
-    for (const cert of achievementItems) {
-        // Simple duplicate check for certificates (by title and year)
-        const { rows: existsRows } = await dbQuery`
-            SELECT id FROM certificates 
-            WHERE title = ${cert.title} AND year = ${cert.year}
-        `
-        if (existsRows.length === 0) {
-            await dbQuery`
-                INSERT INTO certificates (year, title, subtitle, description, image)
-                VALUES (${cert.year}, ${cert.title}, ${cert.subtitle}, ${cert.description}, ${cert.image})
-            `
-        }
-    }
+  // Migrate Blog Posts atomically
+  for (const post of posts) {
+    await dbQuery`
+      INSERT INTO blog_posts (slug, title, excerpt, date, content)
+      VALUES (${post.slug}, ${post.title}, ${post.excerpt}, ${post.date}::date, ${post.content})
+      ON CONFLICT (slug) DO NOTHING
+    `;
+  }
 
-    revalidatePath("/admin/dashboard")
-    redirect("/admin/dashboard")
+  // Migrate Certificates using batch repository method
+  await CertificateRepository.syncStaticCertificates(achievementItems);
+
+  revalidatePath("/admin/dashboard");
+  revalidatePath("/admin/blog");
+  revalidatePath("/admin/certificates");
+  revalidatePath("/");
+  redirect("/admin/dashboard");
 }
-export async function initializeDatabase() {
-    const { initDb } = await import("@/lib/db")
-    await initDb()
-    revalidatePath("/admin/dashboard")
+
+/**
+ * Initialize database tables, indexes, and RLS policies.
+ * Protected: requires active admin session.
+ */
+export async function initializeDatabase(): Promise<void> {
+  await requireAdminAuth();
+  const { initDb } = await import("@/lib/db");
+  await initDb();
+  revalidatePath("/admin/dashboard");
 }
