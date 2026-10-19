@@ -16,8 +16,6 @@ const geo = Geo({
   variable: "--font-geo", // Renamed from --font-inter
 });
 
-export const dynamic = "force-dynamic";
-
 export const metadata: Metadata = {
   title: "Arn Kenneth | Portfolio",
   description: "Personal portfolio and blog.",
@@ -33,7 +31,7 @@ export default async function RootLayout({
 }>) {
   const settings = await getSettings();
   const headerList = await headers();
-  const pathname = headerList.get("x-invoke-path") || "";
+  const pathname = headerList.get("x-pathname") || headerList.get("x-invoke-path") || "";
   const isAdmin = pathname.startsWith("/admin");
 
   return (

@@ -1,37 +1,19 @@
-import { dbQuery } from "./db"
-import { achievementItems as fallbackCertificates } from "./data"
+import { CertificateRepository } from "@/repositories/certificate.repo";
 
 export type Certificate = {
-    id?: number;
-    year: string;
-    title: string;
-    subtitle: string;
-    description: string;
-    image: string;
+  id?: number;
+  year: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  image: string;
 };
 
 export async function getCertificates(): Promise<Certificate[]> {
-    try {
-        if (!process.env.POSTGRES_URL) {
-            return fallbackCertificates as Certificate[];
-        }
-        const { rows } = await dbQuery`SELECT * FROM certificates ORDER BY year DESC, created_at DESC`
-        return rows as unknown as Certificate[]
-    } catch (error) {
-        console.error("Failed to fetch certificates from DB, using fallback data", error)
-        return fallbackCertificates as Certificate[];
-    }
+  const items = await CertificateRepository.findAll();
+  return items as Certificate[];
 }
 
 export async function getCertificate(id: number): Promise<Certificate | undefined> {
-    try {
-        if (!process.env.POSTGRES_URL) {
-            return undefined;
-        }
-        const { rows } = await dbQuery`SELECT * FROM certificates WHERE id = ${id}`
-        if (rows.length > 0) return rows[0] as unknown as Certificate
-    } catch (error) {
-        console.error(`Failed to fetch certificate ${id} from DB`, error)
-    }
-    return undefined;
+  return await CertificateRepository.findById(id);
 }

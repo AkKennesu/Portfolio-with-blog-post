@@ -121,11 +121,11 @@ export default function ProfileTransition({ image1, image2, width = 600, height 
 
                 const positions = bufferGeometry.attributes.position.array as Float32Array
 
-                const minDuration = 0.35
-                const maxDuration = 0.55
-                const maxDelayX = 0.35
-                const maxDelayY = 0.08
-                const stretch = 0.06
+                const minDuration = 0.8
+                const maxDuration = 1.2
+                const maxDelayX = 0.85
+                const maxDelayY = 0.125
+                const stretch = 0.11
 
                 const centroid = new THREE.Vector3()
                 const vBase = new THREE.Vector3()
@@ -227,22 +227,22 @@ export default function ProfileTransition({ image1, image2, width = 600, height 
             scene.add(mesh1)
             scene.add(mesh2)
 
-            // GSAP Timeline (Snappy & Responsive)
+            // GSAP Timeline (Smooth & Fluid)
             const tl = gsap.timeline({
                 paused: true,
             })
 
-            const totalDuration = 0.55 + 0.35 + 0.08 + 0.06
+            const totalDuration = 1.2 + 0.85 + 0.125 + 0.11
 
             tl.to(mat1.uniforms.uTime, {
                 value: totalDuration,
-                duration: 0.5,
-                ease: "power2.out"
+                duration: 1.6,
+                ease: "power2.inOut"
             }, 0)
             .to(mat2.uniforms.uTime, {
                 value: totalDuration,
-                duration: 0.5,
-                ease: "power2.out"
+                duration: 1.6,
+                ease: "power2.inOut"
             }, 0)
 
             // Interaction: Only change on hover (play forward on enter, reverse back on leave)

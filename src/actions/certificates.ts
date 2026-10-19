@@ -1,107 +1,90 @@
-"use server"
+"use server";
 
-import { dbQuery } from "@/lib/db"
-import { revalidatePath } from "next/cache"
-import { redirect } from "next/navigation"
-import { z } from "zod"
-
-const certificateSchema = z.object({
-    year: z.string().min(1, "Year is required"),
-    title: z.string().min(1, "Title is required"),
-    subtitle: z.string().min(1, "Subtitle is required"),
-    description: z.string().min(1, "Description is required"),
-    image: z.string().min(1, "Image URL is required"),
-})
+import { CertificateService } from "@/services/certificate.service";
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { ApiError } from "@/lib/errors";
 
 export async function createCertificate(formData: FormData) {
-    let success = false;
-    try {
-        const rawData = {
-            year: formData.get("year") as string,
-            title: formData.get("title") as string,
-            subtitle: formData.get("subtitle") as string,
-            description: formData.get("description") as string,
-            image: formData.get("image") as string,
-        }
+  let success = false;
+  try {
+    const rawData = {
+      year: formData.get("year") as string,
+      title: formData.get("title") as string,
+      subtitle: formData.get("subtitle") as string,
+      description: formData.get("description") as string,
+      image: formData.get("image") as string,
+    };
 
-        const validated = certificateSchema.parse(rawData)
+    await CertificateService.createCertificate(rawData);
+    success = true;
+  } catch (error) {
+    console.error("Failed to create certificate:", error);
+    const message = error instanceof ApiError ? error.message : "Failed to create certificate. Please try again.";
+    return { error: message };
+  }
 
-        await dbQuery`
-            INSERT INTO certificates (year, title, subtitle, description, image)
-            VALUES (${validated.year}, ${validated.title}, ${validated.subtitle}, ${validated.description}, ${validated.image})
-        `
-        success = true;
-    } catch (error) {
-        console.error("Failed to create certificate:", error)
-        return { error: "Failed to create certificate. Please try again." }
-    }
-
-    if (success) {
-        revalidatePath("/")
-        revalidatePath("/admin/certificates")
-        revalidatePath("/", "layout")
-        redirect("/admin/certificates")
-    }
+  if (success) {
+    revalidatePath("/");
+    revalidatePath("/admin/certificates");
+    redirect("/admin/certificates");
+  }
 }
 
 export async function updateCertificate(id: number, formData: FormData) {
-    let success = false;
-    try {
-        const rawData = {
-            year: formData.get("year") as string,
-            title: formData.get("title") as string,
-            subtitle: formData.get("subtitle") as string,
-            description: formData.get("description") as string,
-            image: formData.get("image") as string,
-        }
+  let success = false;
+  try {
+    const rawData = {
+      year: formData.get("year") as string,
+      title: formData.get("title") as string,
+      subtitle: formData.get("subtitle") as string,
+      description: formData.get("description") as string,
+      image: formData.get("image") as string,
+    };
 
-        const validated = certificateSchema.parse(rawData)
+    await CertificateService.updateCertificate(id, rawData);
+    success = true;
+  } catch (error) {
+    console.error("Failed to update certificate:", error);
+    const message = error instanceof ApiError ? error.message : "Failed to update certificate. Please try again.";
+    return { error: message };
+  }
 
-        await dbQuery`
-            UPDATE certificates
-            SET year = ${validated.year}, title = ${validated.title}, subtitle = ${validated.subtitle}, description = ${validated.description}, image = ${validated.image}
-            WHERE id = ${id}
-        `
-        success = true;
-    } catch (error) {
-        console.error("Failed to update certificate:", error)
-        return { error: "Failed to update certificate. Please try again." }
-    }
-
-    if (success) {
-        revalidatePath("/")
-        revalidatePath("/admin/certificates")
-        revalidatePath("/", "layout")
-        redirect("/admin/certificates")
-    }
+  if (success) {
+    revalidatePath("/");
+    revalidatePath("/admin/certificates");
+    redirect("/admin/certificates");
+  }
 }
 
-export async function deleteCertificate(id: number) {
-    try {
-        await dbQuery`DELETE FROM certificates WHERE id = ${id}`
-        revalidatePath("/")
-        revalidatePath("/admin/certificates")
-        revalidatePath("/", "layout")
-        return { success: true }
-    } catch (error) {
-        console.error("Failed to delete certificate:", error)
-        return { success: false, error: "Deletion failed. Please try again." }
-    }
+export async function deleteCertificate(id: number): Promise<{ success: boolean; error?: string }> {
+  try {
+    await CertificateService.deleteCertificate(id);
+    revalidatePath("/");
+    revalidatePath("/admin/certificates");
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to delete certificate:", error);
+    const message = error instanceof ApiError ? error.message : "Deletion failed. Please try again.";
+    return { success: false, error: message };
+  }
 }
-export async function deleteCertificates(ids: number[]) {
-    try {
-        if (ids.length === 0) return { success: true }
 
-        for (const id of ids) {
-            await dbQuery`DELETE FROM certificates WHERE id = ${id}`
-        }
+/**
+ * Single-query batch deletion using ANY()
+ */
+export async function deleteCertificates(ids: number[]): Promise<{ success: boolean; error?: string }> {
+  try {
+    if (!ids || ids.length === 0) return { success: true };
 
-        revalidatePath("/")
-        revalidatePath("/admin/certificates")
-        revalidatePath("/", "layout")
-        return { success: true }
-    } catch (error) {
-        console.error("Failed to delete certificates:", error)
-        return { success: false, error: "Bulk deletion failed. Please try again." }
-    }
+    await CertificateService.deleteMultipleCertificates(ids);
+
+    revalidatePath("/");
+    revalidatePath("/admin/certificates");
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to batch delete certificates:", error);
+    const message = error instanceof ApiError ? error.message : "Bulk deletion failed. Please try again.";
+    return { success: false, error: message };
+  }
 }

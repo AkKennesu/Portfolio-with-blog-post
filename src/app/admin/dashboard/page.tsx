@@ -1,30 +1,14 @@
 import { getSession, migrateData, initializeDatabase } from "@/actions/admin"
 import { redirect } from "next/navigation"
-import { dbQuery } from "@/lib/db"
+import { MetricsRepository } from "@/repositories/metrics.repo"
 import { FileText, Award, MessageSquare, Database, RefreshCw } from "lucide-react"
 
 export default async function AdminDashboardPage() {
     const session = await getSession()
     if (!session) redirect("/admin/login")
 
-    // Get stats
-    let blogCount = 0
-    let certCount = 0
-    let messageCount = 0
-
-    try {
-        if (process.env.POSTGRES_URL) {
-            const { rows: blogRows } = await dbQuery`SELECT count(*) FROM blog_posts`
-            const { rows: certRows } = await dbQuery`SELECT count(*) FROM certificates`
-            const { rows: messageRows } = await dbQuery`SELECT count(*) FROM messages`
-
-            blogCount = Number(blogRows[0].count)
-            certCount = Number(certRows[0].count)
-            messageCount = Number(messageRows[0].count)
-        }
-    } catch {
-        // Tables might not exist yet if not initialized
-    }
+    // Get stats in a single round-trip CTE query
+    const { blogCount, certCount, messageCount } = await MetricsRepository.getDashboardCounts()
 
     const stats = [
         { name: "Total Blog Posts", value: blogCount, icon: FileText, color: "text-blue-500", bg: "bg-blue-500/10" },
