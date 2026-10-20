@@ -58,16 +58,20 @@ export default async function RootLayout({
           enableSystem={false}
           disableTransitionOnChange
         >
-          <SmoothScrolling>
-            <SpotlightBackground />
-            <ScrollProgress />
-            {!isAdmin && <MobileNav />}
-            {!isAdmin && <Navbar settings={settings} />}
-            <PageTransition>
-              <main className={`flex-1 w-full flex flex-col ${isAdmin ? "" : "pt-16"}`}>{children}</main>
-            </PageTransition>
-            {!isAdmin && <Footer settings={settings} />}
-          </SmoothScrolling>
+          {isAdmin ? (
+            <main className="flex-1 w-full flex flex-col">{children}</main>
+          ) : (
+            <SmoothScrolling>
+              <SpotlightBackground />
+              <ScrollProgress />
+              <MobileNav />
+              <Navbar settings={settings} />
+              <PageTransition>
+                <main className="flex-1 w-full flex flex-col pt-16">{children}</main>
+              </PageTransition>
+              <Footer settings={settings} />
+            </SmoothScrolling>
+          )}
         </ThemeProvider>
       </body>
     </html >

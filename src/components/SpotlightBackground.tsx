@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useRef } from "react"
+import { usePathname } from "next/navigation"
 import * as THREE from "three"
 
 // Helper to reliably parse any CSS color format (hex, rgb, hsl, oklch) into a THREE.Color
@@ -44,9 +45,11 @@ function createStarTexture(): THREE.Texture {
 }
 
 export function SpotlightBackground() {
+    const pathname = usePathname()
     const containerRef = useRef<HTMLDivElement | null>(null)
 
     useEffect(() => {
+        if (pathname?.startsWith("/admin")) return
         const container = containerRef.current
         if (!container) return
 
@@ -399,7 +402,11 @@ export function SpotlightBackground() {
                 container.removeChild(renderer.domElement)
             }
         }
-    }, [])
+    }, [pathname])
+
+    if (pathname?.startsWith("/admin")) {
+        return null
+    }
 
     return (
         <div

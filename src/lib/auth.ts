@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { cookies } from "next/headers";
 import { SignJWT, jwtVerify, JWTPayload } from "jose";
 import { createHash, timingSafeEqual } from "crypto";
@@ -49,9 +50,9 @@ export async function verifyAdminToken(token: string): Promise<AdminSessionPaylo
 }
 
 /**
- * Retrieves the current admin session from incoming cookies.
+ * Retrieves the current admin session from incoming cookies (memoized per-request).
  */
-export async function getAdminSession(): Promise<AdminSessionPayload | null> {
+export const getAdminSession = cache(async (): Promise<AdminSessionPayload | null> => {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
@@ -60,7 +61,7 @@ export async function getAdminSession(): Promise<AdminSessionPayload | null> {
   } catch {
     return null;
   }
-}
+});
 
 /**
  * Enforces admin authentication. Throws AuthError if unauthenticated.

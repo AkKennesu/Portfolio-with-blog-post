@@ -26,9 +26,9 @@ export async function createPost(formData: FormData) {
 
   if (success) {
     revalidatePath("/blog");
-    revalidatePath("/admin/blog");
+    revalidatePath("/admin/dashboard");
     revalidatePath("/");
-    redirect("/admin/blog");
+    redirect("/admin/dashboard?tab=blog");
   }
 }
 
@@ -56,9 +56,9 @@ export async function updatePost(id: number, formData: FormData) {
   if (success) {
     revalidatePath("/blog");
     if (newSlug) revalidatePath(`/blog/${newSlug}`);
-    revalidatePath("/admin/blog");
+    revalidatePath("/admin/dashboard");
     revalidatePath("/");
-    redirect("/admin/blog");
+    redirect("/admin/dashboard?tab=blog");
   }
 }
 
@@ -66,7 +66,7 @@ export async function deletePost(id: number): Promise<{ success: boolean; error?
   try {
     await BlogService.deletePost(id);
     revalidatePath("/blog");
-    revalidatePath("/admin/blog");
+    revalidatePath("/admin/dashboard");
     revalidatePath("/");
     return { success: true };
   } catch (error) {
@@ -86,7 +86,7 @@ export async function deletePosts(ids: number[]): Promise<{ success: boolean; er
     await BlogService.deleteMultiplePosts(ids);
 
     revalidatePath("/blog");
-    revalidatePath("/admin/blog");
+    revalidatePath("/admin/dashboard");
     revalidatePath("/");
     return { success: true };
   } catch (error) {
