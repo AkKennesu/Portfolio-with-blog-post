@@ -14,9 +14,10 @@ export const sqlClient =
   globalForDb.sqlClient ??
   postgres(connectionString, {
     ssl: "require",
-    max: process.env.NODE_ENV === "production" ? 10 : 1,
-    idle_timeout: 20,
+    max: process.env.NODE_ENV === "production" ? 10 : 5,
+    idle_timeout: 60,
     max_lifetime: 60 * 30,
+    connect_timeout: 10,
     prepare: false, // Avoid prepared statement conflicts with Supavisor / PgBouncer
   });
 
@@ -124,14 +125,53 @@ export async function initDb() {
     await sqlClient`ALTER TABLE site_settings ENABLE ROW LEVEL SECURITY;`;
     await sqlClient`ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;`;
 
-    console.log("✅ Database tables, indexes, and RLS initialized successfully");
+    // 8. RLS Policies and Least Privilege Grants
+    await sqlClient`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'blog_posts' AND policyname = 'Public can view blog posts') THEN
+          CREATE POLICY "Public can view blog posts" ON blog_posts FOR SELECT TO anon, authenticated USING (true);
+        END IF;
+
+        IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'certificates' AND policyname = 'Public can view certificates') THEN
+          CREATE POLICY "Public can view certificates" ON certificates FOR SELECT TO anon, authenticated USING (true);
+        END IF;
+
+        IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'site_settings' AND policyname = 'Public can view site settings') THEN
+          CREATE POLICY "Public can view site settings" ON site_settings FOR SELECT TO anon, authenticated USING (true);
+        END IF;
+
+        IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'messages' AND policyname = 'Public can insert contact messages') THEN
+          CREATE POLICY "Public can insert contact messages" ON messages FOR INSERT TO anon, authenticated WITH CHECK (true);
+        END IF;
+      END $$;
+    `;
+
+    await sqlClient`
+      REVOKE ALL ON TABLE admin_users FROM anon, authenticated, public;
+      REVOKE SELECT, UPDATE, DELETE, TRUNCATE ON TABLE messages FROM anon, authenticated, public;
+      REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON TABLE blog_posts FROM anon, authenticated, public;
+      REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON TABLE certificates FROM anon, authenticated, public;
+      REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON TABLE site_settings FROM anon, authenticated, public;
+
+      GRANT SELECT ON TABLE blog_posts TO anon, authenticated;
+      GRANT SELECT ON TABLE certificates TO anon, authenticated;
+      GRANT SELECT ON TABLE site_settings TO anon, authenticated;
+      GRANT INSERT ON TABLE messages TO anon, authenticated;
+      GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated;
+    `;
+
+    console.log("✅ Database tables, indexes, RLS, and secure policies initialized successfully");
   } catch (error) {
     console.error("Error initializing database:", error);
     throw error;
   }
 }
 
+let cachedTablesVerified = false;
+
 export async function checkTablesExist() {
+  if (cachedTablesVerified) return true;
   if (!process.env.POSTGRES_URL) return false;
   try {
     const { rows } = await dbQuery`
@@ -140,7 +180,9 @@ export async function checkTablesExist() {
       WHERE schemaname = 'public'
       AND tablename IN ('blog_posts', 'certificates', 'messages', 'site_settings')
     `;
-    return rows.length >= 4;
+    const exists = rows.length >= 4;
+    if (exists) cachedTablesVerified = true;
+    return exists;
   } catch {
     return false;
   }

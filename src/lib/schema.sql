@@ -97,3 +97,19 @@ BEGIN
         CREATE POLICY "Public can insert contact messages" ON messages FOR INSERT WITH CHECK (true);
     END IF;
 END $$;
+
+-- ====================================================================
+-- Principle of Least Privilege (Zero Data Leakage)
+-- ====================================================================
+REVOKE ALL ON TABLE admin_users FROM anon, authenticated, public;
+REVOKE SELECT, UPDATE, DELETE, TRUNCATE ON TABLE messages FROM anon, authenticated, public;
+REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON TABLE blog_posts FROM anon, authenticated, public;
+REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON TABLE certificates FROM anon, authenticated, public;
+REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON TABLE site_settings FROM anon, authenticated, public;
+
+GRANT SELECT ON TABLE blog_posts TO anon, authenticated;
+GRANT SELECT ON TABLE certificates TO anon, authenticated;
+GRANT SELECT ON TABLE site_settings TO anon, authenticated;
+GRANT INSERT ON TABLE messages TO anon, authenticated;
+GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated;
+

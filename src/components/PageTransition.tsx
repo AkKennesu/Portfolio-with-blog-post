@@ -19,6 +19,10 @@ function FrozenRouter(props: { children: React.ReactNode }) {
 export function PageTransition({ children }: { children: React.ReactNode }) {
     const pathname = usePathname()
 
+    if (pathname?.startsWith("/admin")) {
+        return <>{children}</>
+    }
+
     return (
         <AnimatePresence mode="wait">
             <motion.div
