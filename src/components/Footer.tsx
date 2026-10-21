@@ -102,7 +102,7 @@ export function Footer({ settings }: { settings?: SettingsMap }) {
                                 title={link.label}
                                 className={cn(
                                     "group relative flex h-8 w-8 md:h-10 md:w-10 items-center justify-center rounded-full",
-                                    "border border-white/10 bg-white/[0.03] backdrop-blur-sm",
+                                    "border border-white/10 bg-white/3 backdrop-blur-sm",
                                     "text-muted-foreground transition-all duration-300",
                                     "hover:scale-110 active:scale-95 shadow-sm",
                                     link.hoverClasses

@@ -20,7 +20,7 @@ export function Timeline({ certificates }: { certificates: Certificate[] }) {
                 {/* Education Section */}
                 <div className="flex flex-col items-center text-center mb-12">
                     <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl mb-4">Education Attainment</h2>
-                    <p className="text-muted-foreground max-w-[800px]">
+                    <p className="text-muted-foreground max-w-200">
                         My academic journey and professional milestones.
                     </p>
                 </div>
@@ -34,7 +34,7 @@ export function Timeline({ certificates }: { certificates: Certificate[] }) {
                             viewport={{ once: true }}
                             className="relative pl-8 pb-12 last:pb-0 border-l border-border"
                         >
-                            <div className="absolute left-[-5px] top-0 h-2.5 w-2.5 rounded-full bg-primary" />
+                            <div className="absolute -left-1.25 top-0 h-2.5 w-2.5 rounded-full bg-primary" />
                             <div className="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-4 mb-1">
                                 <span className="text-sm font-bold text-primary">{item.year}</span>
                                 <h3 className="text-lg font-semibold">{item.title}</h3>
@@ -50,7 +50,7 @@ export function Timeline({ certificates }: { certificates: Certificate[] }) {
                 {/* Certificates Section */}
                 <div className="flex flex-col items-center text-center mb-12">
                     <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl mb-4">My Certificates</h2>
-                    <p className="text-muted-foreground max-w-[800px]">
+                    <p className="text-muted-foreground max-w-200">
                         Professional certifications and notable achievement milestones.
                     </p>
                 </div>
@@ -64,13 +64,13 @@ export function Timeline({ certificates }: { certificates: Certificate[] }) {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={() => setSelectedCertificate(null)}
-                        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 p-4 md:p-10 cursor-zoom-out"
+                        className="fixed inset-0 z-100 flex items-center justify-center bg-black/95 p-4 md:p-10 cursor-zoom-out"
                     >
                         <motion.button
                             initial={{ scale: 0.5, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0.5, opacity: 0 }}
-                            className="absolute top-6 right-6 text-white bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors z-[110]"
+                            className="absolute top-6 right-6 text-white bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors z-110"
                             onClick={() => setSelectedCertificate(null)}
                         >
                             <X className="w-6 h-6" />
@@ -170,9 +170,9 @@ function AchievementCard({ item, onClick }: { item: Certificate, onClick: () => 
             transition={{ duration: 0.5 }}
             viewport={{ once: true }}
             onClick={onClick}
-            className="group relative m-0 flex h-72 w-full max-w-[400px] rounded-xl shadow-xl ring-gray-900/5 sm:mx-auto cursor-zoom-in"
+            className="group relative m-0 flex h-72 w-full max-w-100 rounded-xl shadow-xl ring-gray-900/5 sm:mx-auto cursor-zoom-in"
         >
-            <div className="z-10 h-full w-full overflow-hidden rounded-xl border border-gray-200 opacity-80 transition duration-300 ease-in-out group-hover:opacity-100 dark:border-gray-700 dark:opacity-70">
+            <div className="relative z-10 h-full w-full overflow-hidden rounded-xl border border-gray-200 opacity-80 transition duration-300 ease-in-out group-hover:opacity-100 dark:border-gray-700 dark:opacity-70">
                 <Image
                     src={item.image}
                     fill
@@ -183,7 +183,7 @@ function AchievementCard({ item, onClick }: { item: Certificate, onClick: () => 
             <div className="absolute bottom-0 z-20 m-0 pb-6 ps-6 transition duration-300 ease-in-out group-hover:-translate-y-1 group-hover:translate-x-3 group-hover:scale-110">
                 <h1 className="text-2xl font-bold text-white shadow-xl drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">{item.title}</h1>
                 <h1 className="text-sm font-medium text-gray-200 shadow-xl drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]">{item.subtitle}</h1>
-                <p className="text-xs text-gray-300 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 max-w-[250px] drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]">
+                <p className="text-xs text-gray-300 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 max-w-62.5 drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]">
                     {item.description}
                 </p>
             </div>

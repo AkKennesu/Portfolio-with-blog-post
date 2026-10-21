@@ -43,7 +43,7 @@ export function Contact({ settings }: { settings?: SettingsMap }) {
     }, [state.success])
 
     return (
-        <section id="contact" className="py-24 sm:py-32 bg-muted/50">
+        <section id="contact" className="py-24 sm:py-32 bg-muted/50 overflow-hidden">
             <div className="container mx-auto px-4 md:px-6">
                 <div className="grid gap-12 lg:grid-cols-2 lg:gap-24">
                     <div>
@@ -115,7 +115,7 @@ export function Contact({ settings }: { settings?: SettingsMap }) {
                                 name="message"
                                 required
                                 defaultValue={state.fields?.message}
-                                className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                className="flex min-h-30 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                 placeholder="Tell me about your project..."
                             />
                         </div>

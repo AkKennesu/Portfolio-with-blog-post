@@ -187,7 +187,7 @@ export default function DashboardClient({
               key={stat.title}
               onClick={onSelectTab ? () => onSelectTab(stat.targetTab) : undefined}
               className={`group relative rounded-xl border p-6 bg-card transition-all duration-200 hover:border-foreground/25 hover:shadow-md cursor-pointer ${
-                stat.highlight ? "border-primary/40 bg-primary/[0.02]" : "border-border/70"
+                stat.highlight ? "border-primary/40 bg-primary/2" : "border-border/70"
               }`}
             >
               <div className="flex items-start justify-between">

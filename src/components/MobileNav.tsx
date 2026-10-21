@@ -3,6 +3,7 @@
 import React, { useRef, useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { useActiveSection } from "@/hooks/use-active-section"
 import { navItems } from "@/lib/data"
 import { cn, scrollToSection } from "@/lib/utils"
@@ -53,7 +54,11 @@ export const MobileNav = () => {
 }
 
 const SlideTabs = () => {
+    const pathname = usePathname()
     const activeSection = useActiveSection()
+    const isBlogRoute = pathname?.startsWith("/blog")
+    const effectiveActive = isBlogRoute ? "/#blog" : activeSection
+
     const [position, setPosition] = useState({
         left: 0,
         width: 0,
@@ -63,7 +68,7 @@ const SlideTabs = () => {
     const tabsRef = useRef<(HTMLLIElement | null)[]>([])
 
     const updatePosition = React.useCallback(() => {
-        const activeIndex = navItems.findIndex((item) => item.href === activeSection)
+        const activeIndex = navItems.findIndex((item) => item.href === effectiveActive)
 
         if (activeIndex !== -1 && tabsRef.current[activeIndex] && navContainerRef.current) {
             const currentTab = tabsRef.current[activeIndex]
@@ -83,7 +88,7 @@ const SlideTabs = () => {
             // Scroll container so the active tab is visible if overflowed
             currentTab.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" })
         }
-    }, [activeSection])
+    }, [effectiveActive])
 
     useEffect(() => {
         updatePosition()
@@ -101,7 +106,7 @@ const SlideTabs = () => {
                     key={item.href}
                     item={item}
                     ref={(el) => { tabsRef.current[index] = el }}
-                    isActive={activeSection === item.href}
+                    isActive={effectiveActive === item.href}
                 />
             ))}
 
