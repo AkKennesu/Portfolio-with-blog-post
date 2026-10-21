@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { cn, scrollToSection } from "@/lib/utils"
 import { Download } from "lucide-react"
 import { navItems } from "@/lib/data"
@@ -9,25 +10,27 @@ import { useActiveSection } from "@/hooks/use-active-section"
 import { SettingsMap } from "@/actions/settings"
 
 export function Navbar({ settings }: { settings?: SettingsMap }) {
+    const pathname = usePathname()
     const scrolled = useScroll()
     const activeSection = useActiveSection()
 
     // Use uploaded CV if it exists, otherwise fallback to local asset
     const cvHref = settings?.cv_file || "/cv.pdf"
+    const isBlogRoute = pathname?.startsWith("/blog")
 
     return (
         <header
             className={cn(
                 "fixed top-0 z-50 w-full border-b transition-all duration-300",
                 scrolled
-                    ? "border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+                    ? "border-border/40 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60"
                     : "border-transparent bg-transparent"
             )}
         >
             <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center gap-2">
                     <Link href="/" className="flex items-center space-x-2">
-                        <span className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                        <span className="text-xl font-bold bg-linear-to-r from-primary to-accent bg-clip-text text-transparent">
                             AK
                         </span>
                     </Link>
@@ -35,19 +38,25 @@ export function Navbar({ settings }: { settings?: SettingsMap }) {
 
                 {/* Desktop Nav */}
                 <nav className="hidden md:flex gap-6 items-center">
-                    {navItems.map((item) => (
-                        <Link
-                            key={item.href}
-                            href={item.href}
-                            onClick={(e) => scrollToSection(e, item.href)}
-                            className={cn(
-                                "nav-link-hover block px-4 py-2 text-sm font-medium transition-colors",
-                                activeSection === item.href ? "text-primary" : "text-muted-foreground"
-                            )}
-                        >
-                            {item.name}
-                        </Link>
-                    ))}
+                    {navItems.map((item) => {
+                        const active = isBlogRoute
+                            ? item.href === "/#blog"
+                            : activeSection === item.href
+
+                        return (
+                            <Link
+                                key={item.href}
+                                href={item.href}
+                                onClick={(e) => scrollToSection(e, item.href)}
+                                className={cn(
+                                    "nav-link-hover block px-4 py-2 text-sm font-medium transition-colors",
+                                    active ? "text-primary font-semibold" : "text-muted-foreground"
+                                )}
+                            >
+                                {item.name}
+                            </Link>
+                        )
+                    })}
                     <a
                         href={cvHref}
                         download="Arn_Kenneth_CV"

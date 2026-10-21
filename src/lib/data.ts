@@ -44,7 +44,7 @@ export const projects = [
         description: "Mobile-first web app for tracking workouts and diet plans with social features.",
         tags: ["React", "PWA", "Supabase"],
         links: { demo: "#", github: "#" },
-        image: "https://images.pexels.com/photos/3757339/pexels-photo-3757339.jpeg?auto=compress&cs=tinysrgb&w=1260"
+        image: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=1260&q=80"
     },
     {
         title: "Real Estate Platform",

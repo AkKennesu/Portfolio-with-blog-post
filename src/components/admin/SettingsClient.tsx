@@ -179,7 +179,7 @@ export default function SettingsClient({ initialSettings }: { initialSettings: S
               <textarea
                 name="about_me_1"
                 defaultValue={settings.about_me_1}
-                className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm leading-relaxed"
+                className="flex min-h-25 w-full rounded-md border border-input bg-background px-3 py-2 text-sm leading-relaxed"
                 placeholder="Tell us about yourself..."
               />
             </div>
@@ -188,7 +188,7 @@ export default function SettingsClient({ initialSettings }: { initialSettings: S
               <textarea
                 name="about_me_2"
                 defaultValue={settings.about_me_2}
-                className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm leading-relaxed"
+                className="flex min-h-25 w-full rounded-md border border-input bg-background px-3 py-2 text-sm leading-relaxed"
                 placeholder="Add more details..."
               />
             </div>
@@ -338,7 +338,7 @@ export default function SettingsClient({ initialSettings }: { initialSettings: S
                       </div>
                       <div className="space-y-1">
                         <p className="text-sm font-bold text-green-600">CV Ready for Save</p>
-                        <p className="text-[10px] text-muted-foreground truncate max-w-[150px]">
+                        <p className="text-[10px] text-muted-foreground truncate max-w-37.5">
                           {cvName || "File prepared"}
                         </p>
                       </div>

@@ -6,7 +6,7 @@ export async function About() {
     const settings = await getSettings()
 
     return (
-        <section id="about" className="py-24 sm:py-32">
+        <section id="about" className="py-24 sm:py-32 overflow-hidden">
             <div className="container mx-auto px-4 md:px-6">
                 <div className="grid gap-8 lg:grid-cols-2 lg:gap-8 items-center max-w-4xl mx-auto">
                     <AboutContent
