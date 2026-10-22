@@ -1,97 +1,66 @@
-"use server"
+"use server";
 
-import { dbQuery } from "@/lib/db"
-import { revalidatePath } from "next/cache"
-import { getSession } from "./admin"
+import { MessageRepository, type MessageItem } from "@/repositories/message.repo";
+import { revalidatePath } from "next/cache";
+import { requireAdminAuth } from "@/lib/auth";
+import { ApiError } from "@/lib/errors";
 
-export type Message = {
-    id: number
-    name: string
-    email: string
-    message: string
-    is_read: boolean
-    is_important: boolean
-    created_at: string
-}
-
-async function checkAuth() {
-    const session = await getSession()
-    if (!session) throw new Error("Unauthorized")
-}
+export type Message = MessageItem;
 
 export async function getMessages(): Promise<Message[]> {
-    await checkAuth()
-    try {
-        const { rows } = await dbQuery`
-            SELECT * FROM messages 
-            ORDER BY created_at DESC
-        `
-        return rows as unknown as Message[]
-    } catch (error) {
-        console.error("Failed to fetch messages:", error)
-        return []
-    }
+  await requireAdminAuth();
+  return await MessageRepository.findAll();
 }
 
-export async function toggleRead(id: number, status: boolean) {
-    await checkAuth()
-    try {
-        await dbQuery`
-            UPDATE messages 
-            SET is_read = ${status} 
-            WHERE id = ${id}
-        `
-        revalidatePath("/admin/messages")
-        revalidatePath("/", "layout")
-    } catch (error) {
-        console.error("Failed to toggle read status:", error)
-    }
+export async function toggleRead(id: number, status: boolean): Promise<void> {
+  await requireAdminAuth();
+  try {
+    await MessageRepository.toggleRead(id, status);
+    revalidatePath("/admin/messages");
+  } catch (error) {
+    console.error("Failed to toggle read status:", error);
+    throw error;
+  }
 }
 
-export async function toggleImportant(id: number, status: boolean) {
-    await checkAuth()
-    try {
-        await dbQuery`
-            UPDATE messages 
-            SET is_important = ${status} 
-            WHERE id = ${id}
-        `
-        revalidatePath("/admin/messages")
-        revalidatePath("/", "layout")
-    } catch (error) {
-        console.error("Failed to toggle important status:", error)
-    }
+export async function toggleImportant(id: number, status: boolean): Promise<void> {
+  await requireAdminAuth();
+  try {
+    await MessageRepository.toggleImportant(id, status);
+    revalidatePath("/admin/messages");
+  } catch (error) {
+    console.error("Failed to toggle important status:", error);
+    throw error;
+  }
 }
 
-export async function deleteMessage(id: number) {
-    await checkAuth()
-    try {
-        await dbQuery`
-            DELETE FROM messages 
-            WHERE id = ${id}
-        `
-        revalidatePath("/admin/messages")
-        revalidatePath("/", "layout")
-        return { success: true }
-    } catch (error) {
-        console.error("Failed to delete message:", error)
-        return { success: false, error: "Deletion failed" }
-    }
+export async function deleteMessage(id: number): Promise<{ success: boolean; error?: string }> {
+  await requireAdminAuth();
+  try {
+    await MessageRepository.delete(id);
+    revalidatePath("/admin/messages");
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to delete message:", error);
+    const message = error instanceof ApiError ? error.message : "Deletion failed";
+    return { success: false, error: message };
+  }
 }
-export async function deleteMessages(ids: number[]) {
-    await checkAuth()
-    try {
-        if (ids.length === 0) return { success: true }
 
-        for (const id of ids) {
-            await dbQuery`DELETE FROM messages WHERE id = ${id}`
-        }
+/**
+ * Single-query batch delete using ANY()
+ */
+export async function deleteMessages(ids: number[]): Promise<{ success: boolean; error?: string }> {
+  await requireAdminAuth();
+  try {
+    if (!ids || ids.length === 0) return { success: true };
 
-        revalidatePath("/admin/messages")
-        revalidatePath("/", "layout")
-        return { success: true }
-    } catch (error) {
-        console.error("Failed to delete messages:", error)
-        return { success: false, error: "Bulk deletion failed" }
-    }
+    await MessageRepository.deleteMany(ids);
+    revalidatePath("/admin/messages");
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to delete messages:", error);
+    const message = error instanceof ApiError ? error.message : "Bulk deletion failed";
+    return { success: false, error: message };
+  }
 }

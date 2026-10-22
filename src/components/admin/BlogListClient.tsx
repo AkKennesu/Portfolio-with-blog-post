@@ -60,9 +60,9 @@ export default function BlogListClient({ posts }: { posts: Post[] }) {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-border">
-                        {posts.map((post) => (
+                        {posts.map((post, idx) => (
                             <tr
-                                key={post.slug}
+                                key={post.id ? `post-${post.id}` : post.slug || `post-${idx}`}
                                 className={`transition-colors cursor-pointer ${selectedIds.includes(post.id!) ? "bg-primary/5 hover:bg-primary/10" : "hover:bg-muted/30"
                                     }`}
                                 onClick={() => toggleSelect(post.id!)}

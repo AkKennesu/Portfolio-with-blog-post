@@ -64,14 +64,14 @@ export const EncryptButton = ({
             onMouseEnter={scramble}
             onMouseLeave={stopScramble}
             className={cn(
-                "group relative flex items-center justify-center overflow-hidden rounded-lg border border-primary/20 bg-background px-8 py-3 font-mono font-medium uppercase text-foreground transition-colors hover:text-primary hover:border-primary",
+                "group relative flex items-center justify-center overflow-hidden rounded-lg border border-primary/20 bg-background px-6 sm:px-8 py-3 font-mono font-medium uppercase text-foreground transition-colors hover:text-primary hover:border-primary max-w-full",
                 className
             )}
             {...props}
         >
-            <div className="relative z-10 flex items-center justify-center gap-2">
-                <Icon className="h-4 w-4" />
-                <span>{text}</span>
+            <div className="relative z-10 flex items-center justify-center gap-2 max-w-full truncate">
+                <Icon className="h-4 w-4 shrink-0" />
+                <span className="truncate">{text}</span>
             </div>
             <motion.span
                 initial={{ y: "100%" }}
@@ -82,7 +82,7 @@ export const EncryptButton = ({
                     duration: 1,
                     ease: "linear",
                 }}
-                className="duration-300 absolute inset-0 z-0 scale-125 bg-gradient-to-t from-primary/0 from-40% via-primary/10 to-primary/0 to-60% opacity-0 transition-opacity group-hover:opacity-100"
+                className="duration-300 absolute inset-0 z-0 bg-linear-to-t from-primary/0 from-40% via-primary/10 to-primary/0 to-60% opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none"
             />
         </motion.button>
     )

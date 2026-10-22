@@ -24,7 +24,7 @@ export default async function EditCertPage({
         <div className="p-8">
             <div className="mb-8">
                 <Link
-                    href="/admin/certificates"
+                    href="/admin/dashboard?tab=certificates"
                     className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-primary transition-colors mb-4"
                 >
                     <ArrowLeft className="mr-2 h-4 w-4" />

@@ -1,112 +1,97 @@
-"use server"
+"use server";
 
-import { dbQuery } from "@/lib/db"
-import { revalidatePath } from "next/cache"
-import { redirect } from "next/navigation"
-import { z } from "zod"
-
-const blogSchema = z.object({
-    title: z.string().min(1, "Title is required"),
-    slug: z.string().min(1, "Slug is required").regex(/^[a-z0-9-]+$/, "Invalid slug format"),
-    excerpt: z.string().min(1, "Excerpt is required"),
-    date: z.string().min(1, "Date is required"),
-    content: z.string().min(1, "Content is required"),
-})
+import { BlogService } from "@/services/blog.service";
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { ApiError } from "@/lib/errors";
 
 export async function createPost(formData: FormData) {
-    let success = false;
-    try {
-        const rawData = {
-            title: formData.get("title") as string,
-            slug: formData.get("slug") as string,
-            excerpt: formData.get("excerpt") as string,
-            date: formData.get("date") as string,
-            content: formData.get("content") as string,
-        }
+  let success = false;
+  try {
+    const rawData = {
+      title: formData.get("title") as string,
+      slug: formData.get("slug") as string,
+      excerpt: formData.get("excerpt") as string,
+      date: formData.get("date") as string,
+      content: formData.get("content") as string,
+    };
 
-        const validated = blogSchema.parse(rawData)
+    await BlogService.createPost(rawData);
+    success = true;
+  } catch (error) {
+    console.error("Failed to create post:", error);
+    const message = error instanceof ApiError ? error.message : "Failed to create post. Please try again.";
+    return { error: message };
+  }
 
-        await dbQuery`
-            INSERT INTO blog_posts (title, slug, excerpt, date, content)
-            VALUES (${validated.title}, ${validated.slug}, ${validated.excerpt}, ${validated.date}, ${validated.content})
-        `
-        success = true;
-    } catch (error) {
-        console.error("Failed to create post:", error)
-        return { error: "Failed to create post. Please try again." }
-    }
-
-    if (success) {
-        revalidatePath("/blog")
-        revalidatePath("/admin/blog")
-        revalidatePath("/", "layout")
-        redirect("/admin/blog")
-    }
+  if (success) {
+    revalidatePath("/blog");
+    revalidatePath("/admin/dashboard");
+    revalidatePath("/");
+    redirect("/admin/dashboard?tab=blog");
+  }
 }
 
 export async function updatePost(id: number, formData: FormData) {
-    let success = false;
-    let newSlug = "";
-    try {
-        const rawData = {
-            title: formData.get("title") as string,
-            slug: formData.get("slug") as string,
-            excerpt: formData.get("excerpt") as string,
-            date: formData.get("date") as string,
-            content: formData.get("content") as string,
-        }
+  let success = false;
+  let newSlug = "";
+  try {
+    const rawData = {
+      title: formData.get("title") as string,
+      slug: formData.get("slug") as string,
+      excerpt: formData.get("excerpt") as string,
+      date: formData.get("date") as string,
+      content: formData.get("content") as string,
+    };
 
-        const validated = blogSchema.parse(rawData)
-        newSlug = validated.slug;
+    const result = await BlogService.updatePost(id, rawData);
+    newSlug = result.slug;
+    success = true;
+  } catch (error) {
+    console.error("Failed to update post:", error);
+    const message = error instanceof ApiError ? error.message : "Failed to update post. Please try again.";
+    return { error: message };
+  }
 
-        await dbQuery`
-            UPDATE blog_posts
-            SET title = ${validated.title}, slug = ${validated.slug}, excerpt = ${validated.excerpt}, date = ${validated.date}, content = ${validated.content}
-            WHERE id = ${id}
-        `
-        success = true;
-    } catch (error) {
-        console.error("Failed to update post:", error)
-        return { error: "Failed to update post. Please try again." }
-    }
-
-    if (success) {
-        revalidatePath("/blog")
-        revalidatePath(`/blog/${newSlug}`)
-        revalidatePath("/admin/blog")
-        revalidatePath("/", "layout")
-        redirect("/admin/blog")
-    }
+  if (success) {
+    revalidatePath("/blog");
+    if (newSlug) revalidatePath(`/blog/${newSlug}`);
+    revalidatePath("/admin/dashboard");
+    revalidatePath("/");
+    redirect("/admin/dashboard?tab=blog");
+  }
 }
 
-export async function deletePost(id: number) {
-    try {
-        await dbQuery`DELETE FROM blog_posts WHERE id = ${id}`
-        revalidatePath("/blog")
-        revalidatePath("/admin/blog")
-        revalidatePath("/", "layout")
-        return { success: true }
-    } catch (error) {
-        console.error("Failed to delete post:", error)
-        return { success: false, error: "Deletion failed. Please try again." }
-    }
+export async function deletePost(id: number): Promise<{ success: boolean; error?: string }> {
+  try {
+    await BlogService.deletePost(id);
+    revalidatePath("/blog");
+    revalidatePath("/admin/dashboard");
+    revalidatePath("/");
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to delete post:", error);
+    const message = error instanceof ApiError ? error.message : "Deletion failed. Please try again.";
+    return { success: false, error: message };
+  }
 }
-export async function deletePosts(ids: number[]) {
-    try {
-        if (ids.length === 0) return { success: true }
 
-        // Use a loop or a specialized query for bulk deletion if your db lib supports it
-        // For simple implementations, we can iterate or use an IN clause if raw query supports it
-        for (const id of ids) {
-            await dbQuery`DELETE FROM blog_posts WHERE id = ${id}`
-        }
+/**
+ * Single-query batch deletion using ANY()
+ */
+export async function deletePosts(ids: number[]): Promise<{ success: boolean; error?: string }> {
+  try {
+    if (!ids || ids.length === 0) return { success: true };
 
-        revalidatePath("/blog")
-        revalidatePath("/admin/blog")
-        revalidatePath("/", "layout")
-        return { success: true }
-    } catch (error) {
-        console.error("Failed to delete posts:", error)
-        return { success: false, error: "Bulk deletion failed. Please try again." }
-    }
+    await BlogService.deleteMultiplePosts(ids);
+
+    revalidatePath("/blog");
+    revalidatePath("/admin/dashboard");
+    revalidatePath("/");
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to batch delete posts:", error);
+    const message = error instanceof ApiError ? error.message : "Bulk deletion failed. Please try again.";
+    return { success: false, error: message };
+  }
 }

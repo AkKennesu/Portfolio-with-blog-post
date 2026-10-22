@@ -4,7 +4,6 @@ import { motion } from "framer-motion"
 import Link from "next/link"
 import { ArrowRight, Mail, Download } from "lucide-react"
 import { EncryptButton } from "@/components/EncryptButton"
-import BubbleText from "./BubbleText"
 
 export function Hero() {
     return (
@@ -18,11 +17,8 @@ export function Hero() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5 }}
                 >
-                    <span className="mb-4 inline-block rounded-full bg-secondary px-3 py-1 text-sm font-medium text-secondary-foreground">
-                        Available for hire
-                    </span>
                     <div className="text-4xl font-normal tracking-tight sm:text-6xl md:text-7xl">
-                        <BubbleText text="Building digital products that" className="font-normal" />
+                        <span>Building digital products that </span>
                         <span className="text-primary block sm:inline font-bold">matter.</span>
                     </div>
                     <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">

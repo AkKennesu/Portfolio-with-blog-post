@@ -43,30 +43,13 @@ export const posts: Post[] = [
   },
 ];
 
-import { dbQuery } from "./db"
+import { BlogRepository } from "@/repositories/blog.repo";
 
 export async function getPosts(): Promise<Post[]> {
-  try {
-    if (!process.env.POSTGRES_URL) {
-      return posts;
-    }
-    const { rows } = await dbQuery`SELECT * FROM blog_posts ORDER BY date DESC`
-    return rows as unknown as Post[]
-  } catch (error) {
-    console.error("Failed to fetch posts from DB, using fallback data", error)
-    return posts;
-  }
+  const list = await BlogRepository.findAll();
+  return list as unknown as Post[];
 }
 
 export async function getPost(slug: string): Promise<Post | undefined> {
-  try {
-    if (!process.env.POSTGRES_URL) {
-      return posts.find((p) => p.slug === slug);
-    }
-    const { rows } = await dbQuery`SELECT * FROM blog_posts WHERE slug = ${slug}`
-    if (rows.length > 0) return rows[0] as unknown as Post
-  } catch (error) {
-    console.error(`Failed to fetch post ${slug} from DB, using fallback data`, error)
-  }
-  return posts.find((p) => p.slug === slug);
+  return await BlogRepository.findBySlug(slug);
 }
