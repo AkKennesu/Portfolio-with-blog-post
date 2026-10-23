@@ -113,15 +113,17 @@ Portfolio-with-blog-post/
 
 ---
 
-## 📥 Installation & Local Setup
+## Installation & Local Setup
 
 ### 1. Clone the repository
+
 ```bash
 git clone https://github.com/AkKennesu/Portfolio-with-blog-post.git
 cd Portfolio-with-blog-post
 ```
 
 ### 2. Install dependencies
+
 ```bash
 npm install
 ```
