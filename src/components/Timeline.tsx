@@ -54,7 +54,13 @@ export function Timeline({ certificates }: { certificates: Certificate[] }) {
                         Professional certifications and notable achievement milestones.
                     </p>
                 </div>
-                <AchievementCarousel certificates={certificates} onCardClick={setSelectedCertificate} />
+                {certificates && certificates.length > 0 ? (
+                    <AchievementCarousel certificates={certificates} onCardClick={setSelectedCertificate} />
+                ) : (
+                    <div className="text-center py-12 text-muted-foreground">
+                        <p>No certificates available yet.</p>
+                    </div>
+                )}
             </div>
 
             <AnimatePresence>
@@ -77,14 +83,16 @@ export function Timeline({ certificates }: { certificates: Certificate[] }) {
                         </motion.button>
 
                         <div className="relative max-w-5xl w-full h-[80vh] flex flex-col items-center justify-center gap-6" onClick={(e) => e.stopPropagation()}>
-                            <motion.img
-                                initial={{ scale: 0.9, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                exit={{ scale: 0.9, opacity: 0 }}
-                                src={selectedCertificate.image}
-                                className="max-w-full max-h-[70%] object-contain rounded-lg shadow-2xl"
-                                alt={selectedCertificate.title}
-                            />
+                            {Boolean(selectedCertificate.image && selectedCertificate.image.trim()) ? (
+                                <motion.img
+                                    initial={{ scale: 0.9, opacity: 0 }}
+                                    animate={{ scale: 1, opacity: 1 }}
+                                    exit={{ scale: 0.9, opacity: 0 }}
+                                    src={selectedCertificate.image}
+                                    className="max-w-full max-h-[70%] object-contain rounded-lg shadow-2xl"
+                                    alt={selectedCertificate.title}
+                                />
+                            ) : null}
                             <motion.div
                                 initial={{ y: 20, opacity: 0 }}
                                 animate={{ y: 0, opacity: 1 }}
@@ -118,11 +126,17 @@ function AchievementCarousel({ certificates, onCardClick }: { certificates: Cert
     }, [emblaApi])
 
     return (
-        <div className="relative max-w-7xl mx-auto px-4 md:px-12">
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            viewport={{ once: true }}
+            className="relative max-w-7xl mx-auto px-4 md:px-12"
+        >
             <div className="overflow-hidden" ref={emblaRef}>
                 <div className="flex touch-pan-y -ml-4">
                     {certificates.map((item, index) => (
-                        <div className="flex-[0_0_100%] md:flex-[0_0_50%] lg:flex-[0_0_33.333%] min-w-0 pl-4 py-4" key={index}>
+                        <div className="flex-[0_0_100%] md:flex-[0_0_50%] lg:flex-[0_0_33.333%] min-w-0 pl-4 py-4" key={item.id ?? index}>
                             <AchievementCard item={item} onClick={() => onCardClick(item)} />
                         </div>
                     ))}
@@ -158,36 +172,41 @@ function AchievementCarousel({ certificates, onCardClick }: { certificates: Cert
                     <ChevronRight className="h-4 w-4" />
                 </Button>
             </div>
-        </div>
+        </motion.div>
     )
 }
 
 function AchievementCard({ item, onClick }: { item: Certificate, onClick: () => void }) {
     return (
-        <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            viewport={{ once: true }}
+        <div
             onClick={onClick}
-            className="group relative m-0 flex h-72 w-full max-w-100 rounded-xl shadow-xl ring-gray-900/5 sm:mx-auto cursor-zoom-in"
+            className="group relative m-0 flex h-72 w-full max-w-100 rounded-xl shadow-xl ring-gray-900/5 sm:mx-auto cursor-zoom-in overflow-hidden"
         >
-            <div className="relative z-10 h-full w-full overflow-hidden rounded-xl border border-gray-200 opacity-80 transition duration-300 ease-in-out group-hover:opacity-100 dark:border-gray-700 dark:opacity-70">
-                <Image
-                    src={item.image}
-                    fill
-                    className="block h-full w-full scale-100 transform object-cover object-center opacity-100 transition duration-300 group-hover:scale-110"
-                    alt={item.title}
-                />
+            <div className="relative z-10 h-full w-full overflow-hidden rounded-xl border border-gray-200 opacity-90 transition duration-300 ease-in-out group-hover:opacity-100 dark:border-gray-700 bg-muted/30">
+                {Boolean(item.image && item.image.trim()) ? (
+                    <Image
+                        src={item.image}
+                        fill
+                        unoptimized
+                        className="block h-full w-full scale-100 transform object-cover object-center opacity-100 transition duration-300 group-hover:scale-110"
+                        alt={item.title}
+                    />
+                ) : (
+                    <div className="flex h-full w-full items-center justify-center bg-muted text-muted-foreground p-4 text-center">
+                        <span className="text-sm font-medium">No preview available</span>
+                    </div>
+                )}
             </div>
-            <div className="absolute bottom-0 z-20 m-0 pb-6 ps-6 transition duration-300 ease-in-out group-hover:-translate-y-1 group-hover:translate-x-3 group-hover:scale-110">
-                <h1 className="text-2xl font-bold text-white shadow-xl drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">{item.title}</h1>
-                <h1 className="text-sm font-medium text-gray-200 shadow-xl drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]">{item.subtitle}</h1>
-                <p className="text-xs text-gray-300 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 max-w-62.5 drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]">
+            {/* Gradient shadow for text readability over certificates */}
+            <div className="absolute inset-0 z-15 bg-gradient-to-t from-black/85 via-black/35 to-transparent pointer-events-none rounded-xl" />
+            <div className="absolute bottom-0 z-20 m-0 pb-6 ps-6 transition duration-300 ease-in-out group-hover:-translate-y-1 group-hover:translate-x-2 group-hover:scale-105 pointer-events-none">
+                <h3 className="text-xl font-bold text-white shadow-xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] line-clamp-1">{item.title}</h3>
+                <p className="text-sm font-medium text-gray-200 shadow-xl drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">{item.subtitle} ({item.year})</p>
+                <p className="text-xs text-gray-300 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 max-w-62.5 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)] line-clamp-2">
                     {item.description}
                 </p>
             </div>
-        </motion.div>
+        </div>
     )
 }
 

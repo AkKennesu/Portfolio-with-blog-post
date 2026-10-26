@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS blog_posts (
     excerpt TEXT,
     date DATE NOT NULL,
     content TEXT NOT NULL,
+    cover_image TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

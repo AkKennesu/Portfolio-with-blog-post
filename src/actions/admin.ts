@@ -72,9 +72,11 @@ export async function migrateData(): Promise<void> {
   // Migrate Blog Posts atomically
   for (const post of posts) {
     await dbQuery`
-      INSERT INTO blog_posts (slug, title, excerpt, date, content)
-      VALUES (${post.slug}, ${post.title}, ${post.excerpt}, ${post.date}::date, ${post.content})
-      ON CONFLICT (slug) DO NOTHING
+      INSERT INTO blog_posts (slug, title, excerpt, date, content, cover_image)
+      VALUES (${post.slug}, ${post.title}, ${post.excerpt}, ${post.date}::date, ${post.content}, ${post.cover_image ?? null})
+      ON CONFLICT (slug) DO UPDATE
+      SET cover_image = EXCLUDED.cover_image
+      WHERE blog_posts.cover_image IS NULL
     `;
   }
 

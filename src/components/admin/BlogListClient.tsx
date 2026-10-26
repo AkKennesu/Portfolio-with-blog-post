@@ -2,11 +2,12 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { Edit, CheckSquare, Square } from "lucide-react"
+import { Edit, CheckSquare, Square, Image as ImageIcon } from "lucide-react"
 import { type Post } from "@/lib/blog"
 import { deletePost, deletePosts } from "@/actions/blog"
 import DeleteButton from "@/components/admin/DeleteButton"
 import { BatchDeleteToolbar } from "./BatchDeleteToolbar"
+import Image from "next/image"
 
 export default function BlogListClient({ posts }: { posts: Post[] }) {
     const [selectedIds, setSelectedIds] = useState<number[]>([])
@@ -44,7 +45,7 @@ export default function BlogListClient({ posts }: { posts: Post[] }) {
                             <th className="px-6 py-4 w-12 text-center">
                                 <button
                                     onClick={toggleSelectAll}
-                                    className="text-muted-foreground hover:text-primary transition-colors"
+                                    className="text-muted-foreground hover:text-primary transition-colors cursor-pointer"
                                 >
                                     {selectedIds.length > 0 && selectedIds.length === posts.length ? (
                                         <CheckSquare className="h-4 w-4 text-primary" />
@@ -53,6 +54,7 @@ export default function BlogListClient({ posts }: { posts: Post[] }) {
                                     )}
                                 </button>
                             </th>
+                            <th className="px-6 py-4 font-semibold text-sm w-24">Cover</th>
                             <th className="px-6 py-4 font-semibold text-sm">Title</th>
                             <th className="px-6 py-4 font-semibold text-sm">Date</th>
                             <th className="px-6 py-4 font-semibold text-sm">Slug</th>
@@ -70,7 +72,7 @@ export default function BlogListClient({ posts }: { posts: Post[] }) {
                                 <td className="px-6 py-4 text-center" onClick={(e) => e.stopPropagation()}>
                                     <button
                                         onClick={() => toggleSelect(post.id!)}
-                                        className="text-muted-foreground hover:text-primary transition-colors"
+                                        className="text-muted-foreground hover:text-primary transition-colors cursor-pointer"
                                     >
                                         {selectedIds.includes(post.id!) ? (
                                             <CheckSquare className="h-4 w-4 text-primary" />
@@ -78,6 +80,23 @@ export default function BlogListClient({ posts }: { posts: Post[] }) {
                                             <Square className="h-4 w-4" />
                                         )}
                                     </button>
+                                </td>
+                                <td className="px-6 py-3">
+                                    <div className="relative h-11 w-16 rounded-lg overflow-hidden bg-muted/60 border border-border/60 shrink-0">
+                                        {post.cover_image && post.cover_image.trim() ? (
+                                            <Image
+                                                src={post.cover_image}
+                                                alt={post.title}
+                                                fill
+                                                unoptimized
+                                                className="object-cover"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-muted-foreground/40">
+                                                <ImageIcon className="h-4 w-4" />
+                                            </div>
+                                        )}
+                                    </div>
                                 </td>
                                 <td className="px-6 py-4 text-sm font-medium">{post.title}</td>
                                 <td className="px-6 py-4 text-sm text-muted-foreground">{post.date}</td>
@@ -101,7 +120,7 @@ export default function BlogListClient({ posts }: { posts: Post[] }) {
                         ))}
                         {posts.length === 0 && (
                             <tr>
-                                <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground italic">
+                                <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground italic">
                                     No blog posts found.
                                 </td>
                             </tr>

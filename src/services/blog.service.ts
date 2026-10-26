@@ -15,6 +15,7 @@ export const blogPostInputSchema = z.object({
   excerpt: z.string().trim().min(1, "Excerpt is required").max(500, "Excerpt cannot exceed 500 characters"),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in YYYY-MM-DD format"),
   content: z.string().min(1, "Content is required"),
+  cover_image: z.string().trim().optional().nullable().or(z.literal("")),
 });
 
 export type BlogPostInput = z.infer<typeof blogPostInputSchema>;
@@ -38,7 +39,7 @@ export class BlogService {
       throw new ValidationError("Invalid blog post data", parsed.error.flatten().fieldErrors);
     }
 
-    const { title, slug, excerpt, date, content } = parsed.data;
+    const { title, slug, excerpt, date, content, cover_image } = parsed.data;
 
     // 3. Sanitize HTML content to prevent stored XSS
     const sanitizedHtml = sanitizeContent(content);
@@ -50,6 +51,7 @@ export class BlogService {
       excerpt,
       date,
       content: sanitizedHtml,
+      cover_image: cover_image || null,
     });
 
     return { id: result.id, slug };
@@ -69,7 +71,7 @@ export class BlogService {
       throw new ValidationError("Invalid blog post data", parsed.error.flatten().fieldErrors);
     }
 
-    const { title, slug, excerpt, date, content } = parsed.data;
+    const { title, slug, excerpt, date, content, cover_image } = parsed.data;
 
     // 3. Sanitize HTML content
     const sanitizedHtml = sanitizeContent(content);
@@ -81,6 +83,7 @@ export class BlogService {
       excerpt,
       date,
       content: sanitizedHtml,
+      cover_image: cover_image || null,
     });
 
     return { slug };

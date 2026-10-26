@@ -1,7 +1,7 @@
 "use server";
 
 import { MessageRepository, type MessageItem } from "@/repositories/message.repo";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { requireAdminAuth } from "@/lib/auth";
 import { ApiError } from "@/lib/errors";
 
@@ -16,7 +16,9 @@ export async function toggleRead(id: number, status: boolean): Promise<void> {
   await requireAdminAuth();
   try {
     await MessageRepository.toggleRead(id, status);
+    revalidatePath("/admin/dashboard");
     revalidatePath("/admin/messages");
+    revalidateTag("admin-unified-data");
   } catch (error) {
     console.error("Failed to toggle read status:", error);
     throw error;
@@ -27,7 +29,9 @@ export async function toggleImportant(id: number, status: boolean): Promise<void
   await requireAdminAuth();
   try {
     await MessageRepository.toggleImportant(id, status);
+    revalidatePath("/admin/dashboard");
     revalidatePath("/admin/messages");
+    revalidateTag("admin-unified-data");
   } catch (error) {
     console.error("Failed to toggle important status:", error);
     throw error;
@@ -38,7 +42,9 @@ export async function deleteMessage(id: number): Promise<{ success: boolean; err
   await requireAdminAuth();
   try {
     await MessageRepository.delete(id);
+    revalidatePath("/admin/dashboard");
     revalidatePath("/admin/messages");
+    revalidateTag("admin-unified-data");
     return { success: true };
   } catch (error) {
     console.error("Failed to delete message:", error);
@@ -56,7 +62,9 @@ export async function deleteMessages(ids: number[]): Promise<{ success: boolean;
     if (!ids || ids.length === 0) return { success: true };
 
     await MessageRepository.deleteMany(ids);
+    revalidatePath("/admin/dashboard");
     revalidatePath("/admin/messages");
+    revalidateTag("admin-unified-data");
     return { success: true };
   } catch (error) {
     console.error("Failed to delete messages:", error);
