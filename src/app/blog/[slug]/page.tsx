@@ -1,5 +1,6 @@
 import { Metadata } from "next"
 import Link from "next/link"
+import Image from "next/image"
 import { notFound } from "next/navigation"
 import { ArrowLeft, ArrowRight, Calendar, Clock, ChevronRight } from "lucide-react"
 import { getPost, getPosts } from "@/lib/blog"
@@ -36,6 +37,16 @@ export async function generateMetadata({
             description: post.excerpt,
             type: "article",
             publishedTime: post.date,
+            ...(post.cover_image
+                ? {
+                      images: [
+                          {
+                              url: post.cover_image,
+                              alt: post.title,
+                          },
+                      ],
+                  }
+                : {}),
         },
     }
 }
@@ -87,7 +98,7 @@ export default async function BlogPostPage({
                 </div>
 
                 {/* Article Header */}
-                <header className="mb-10 sm:mb-14">
+                <header className="mb-10 sm:mb-12">
                     <div className="flex flex-wrap items-center gap-3 mb-5 text-xs">
                         <span className="inline-flex items-center rounded-full bg-primary/15 border border-primary/30 px-3 py-1 font-semibold text-primary">
                             {category}
@@ -133,6 +144,21 @@ export default async function BlogPostPage({
                     </div>
                 </header>
 
+                {/* Cinematic Article Cover Banner */}
+                {post.cover_image && post.cover_image.trim() ? (
+                    <div className="relative w-full aspect-16/9 sm:aspect-21/9 rounded-2xl sm:rounded-3xl overflow-hidden border border-border/80 shadow-2xl mb-12 bg-muted/40 group">
+                        <Image
+                            src={post.cover_image}
+                            alt={post.title}
+                            fill
+                            unoptimized
+                            priority
+                            className="object-cover transition-transform duration-700 group-hover:scale-[1.02]"
+                        />
+                        <div className="absolute inset-0 bg-linear-to-t from-background/40 via-transparent to-transparent pointer-events-none" />
+                    </div>
+                ) : null}
+
                 {/* Reading Surface - Frosted panel ensuring crystal-clear text contrast over 3D particles */}
                 <div className="rounded-2xl sm:rounded-3xl border border-border/80 bg-card/90 backdrop-blur-2xl p-6 sm:p-12 md:p-16 shadow-2xl mb-16">
                     <article
@@ -147,7 +173,10 @@ export default async function BlogPostPage({
                             prose-pre:bg-muted/80 prose-pre:border prose-pre:border-border/80 prose-pre:rounded-xl prose-pre:p-4
                             prose-blockquote:border-l-primary prose-blockquote:border-l-4 prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-muted-foreground
                             prose-ul:list-disc prose-ul:pl-6 prose-ol:list-decimal prose-ol:pl-6
-                            prose-li:text-foreground/90 prose-li:my-1"
+                            prose-li:text-foreground/90 prose-li:my-1
+                            prose-img:rounded-2xl prose-img:border prose-img:border-border/70 prose-img:shadow-xl prose-img:max-h-[580px] prose-img:object-cover
+                            prose-figure:my-10 prose-figure:mx-auto
+                            prose-figcaption:text-center prose-figcaption:text-xs prose-figcaption:text-muted-foreground prose-figcaption:mt-3 prose-figcaption:font-medium"
                         dangerouslySetInnerHTML={{ __html: sanitizeContent(post.content) }}
                     />
                 </div>
@@ -192,6 +221,17 @@ export default async function BlogPostPage({
                                         className="group flex flex-col justify-between rounded-xl border border-border/70 bg-card/50 backdrop-blur-sm p-5 transition-all duration-300 hover:border-primary/50 hover:bg-card/80 hover:-translate-y-1"
                                     >
                                         <div>
+                                            {related.cover_image && related.cover_image.trim() ? (
+                                                <div className="relative aspect-video w-full rounded-lg overflow-hidden mb-4 bg-muted/40 border border-border/40">
+                                                    <Image
+                                                        src={related.cover_image}
+                                                        alt={related.title}
+                                                        fill
+                                                        unoptimized
+                                                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                                                    />
+                                                </div>
+                                            ) : null}
                                             <div className="flex items-center justify-between text-[11px] text-muted-foreground mb-3">
                                                 <span className="text-primary font-medium">{relCategory}</span>
                                                 <div className="flex items-center gap-1.5">

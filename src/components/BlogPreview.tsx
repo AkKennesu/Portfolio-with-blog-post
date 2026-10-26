@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { motion, type Variants } from "framer-motion"
 import { ArrowRight, Calendar, Clock } from "lucide-react"
@@ -57,19 +58,30 @@ export function BlogPreview({ posts }: { posts: Post[] }) {
                     viewport={{ once: true, margin: "-60px" }}
                     className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto mb-16"
                 >
-                    {posts.map((post) => {
+                    {posts.map((post, idx) => {
                         const readTime = estimateReadingTime(post.content, post.excerpt)
                         const category = getPostCategory(post)
                         const formattedDate = formatBlogDate(post.date)
 
                         return (
                             <motion.article
-                                key={post.slug}
+                                key={post.id ? `blog-preview-${post.id}` : post.slug || `blog-preview-${idx}`}
                                 variants={cardVariants}
                                 className="group relative flex flex-col justify-between rounded-2xl border border-border/70 bg-card/65 backdrop-blur-md p-6 sm:p-7 transition-all duration-300 hover:border-primary/50 hover:bg-card/90 hover:shadow-[0_12px_32px_-8px_rgba(0,0,0,0.5)] hover:-translate-y-1"
                             >
                                 {/* Card Header: Tag & Read Time */}
                                 <div>
+                                    {post.cover_image && post.cover_image.trim() ? (
+                                        <div className="relative aspect-video w-full rounded-xl overflow-hidden mb-5 bg-muted/40 border border-border/40">
+                                            <Image
+                                                src={post.cover_image}
+                                                alt={post.title}
+                                                fill
+                                                unoptimized
+                                                className="object-cover transition-transform duration-500 group-hover:scale-105"
+                                            />
+                                        </div>
+                                    ) : null}
                                     <div className="flex items-center justify-between gap-2 mb-4 text-xs">
                                         <span className="inline-flex items-center rounded-full bg-primary/10 border border-primary/25 px-2.5 py-0.5 font-medium text-primary">
                                             {category}

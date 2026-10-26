@@ -2,14 +2,21 @@
 
 import { SettingsService } from "@/services/settings.service";
 import { type SettingsMap } from "@/repositories/settings.repo";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag, unstable_cache } from "next/cache";
 import { ApiError } from "@/lib/errors";
 
 export type { SettingsMap };
 
-export async function getSettings(): Promise<SettingsMap> {
-  return await SettingsService.getSettings();
-}
+export const getSettings = unstable_cache(
+  async (): Promise<SettingsMap> => {
+    return await SettingsService.getSettings();
+  },
+  ["site-settings"],
+  {
+    tags: ["settings", "admin-unified-data"],
+    revalidate: 300,
+  }
+);
 
 export async function updateSettings(formData: FormData): Promise<{ success: boolean; error?: string }> {
   try {
@@ -33,6 +40,8 @@ export async function updateSettings(formData: FormData): Promise<{ success: boo
 
     revalidatePath("/");
     revalidatePath("/admin/settings");
+    revalidatePath("/admin/dashboard");
+    revalidateTag("admin-unified-data");
     return { success: true };
   } catch (error) {
     console.error("Failed to update settings:", error);

@@ -7,6 +7,7 @@ export interface BlogPostListItem {
   title: string;
   excerpt: string;
   date: string;
+  cover_image?: string | null;
 }
 
 export class BlogRepository {
@@ -21,13 +22,13 @@ export class BlogRepository {
     try {
       const { rows } = limit
         ? await dbQuery`
-            SELECT id, slug, title, excerpt, to_char(date, 'YYYY-MM-DD') as date
+            SELECT id, slug, title, excerpt, to_char(date, 'YYYY-MM-DD') as date, cover_image
             FROM blog_posts
             ORDER BY date DESC
             LIMIT ${limit}
           `
         : await dbQuery`
-            SELECT id, slug, title, excerpt, to_char(date, 'YYYY-MM-DD') as date
+            SELECT id, slug, title, excerpt, to_char(date, 'YYYY-MM-DD') as date, cover_image
             FROM blog_posts
             ORDER BY date DESC
           `;
@@ -49,7 +50,7 @@ export class BlogRepository {
 
     try {
       const { rows } = await dbQuery`
-        SELECT id, slug, title, excerpt, to_char(date, 'YYYY-MM-DD') as date, content
+        SELECT id, slug, title, excerpt, to_char(date, 'YYYY-MM-DD') as date, content, cover_image
         FROM blog_posts
         WHERE slug = ${slug}
         LIMIT 1
@@ -69,7 +70,7 @@ export class BlogRepository {
     if (!process.env.POSTGRES_URL) return undefined;
     try {
       const { rows } = await dbQuery`
-        SELECT id, slug, title, excerpt, to_char(date, 'YYYY-MM-DD') as date, content
+        SELECT id, slug, title, excerpt, to_char(date, 'YYYY-MM-DD') as date, content, cover_image
         FROM blog_posts
         WHERE id = ${id}
         LIMIT 1
@@ -87,10 +88,11 @@ export class BlogRepository {
     excerpt: string;
     date: string;
     content: string;
+    cover_image?: string | null;
   }): Promise<{ id: number }> {
     const { rows } = await dbQuery`
-      INSERT INTO blog_posts (title, slug, excerpt, date, content)
-      VALUES (${post.title}, ${post.slug}, ${post.excerpt}, ${post.date}::date, ${post.content})
+      INSERT INTO blog_posts (title, slug, excerpt, date, content, cover_image)
+      VALUES (${post.title}, ${post.slug}, ${post.excerpt}, ${post.date}::date, ${post.content}, ${post.cover_image ?? null})
       RETURNING id
     `;
     return { id: Number(rows[0].id) };
@@ -104,6 +106,7 @@ export class BlogRepository {
       excerpt: string;
       date: string;
       content: string;
+      cover_image?: string | null;
     }
   ): Promise<void> {
     await dbQuery`
@@ -114,6 +117,7 @@ export class BlogRepository {
         excerpt = ${post.excerpt},
         date = ${post.date}::date,
         content = ${post.content},
+        cover_image = ${post.cover_image ?? null},
         updated_at = CURRENT_TIMESTAMP
       WHERE id = ${id}
     `;

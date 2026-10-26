@@ -14,25 +14,43 @@ export const sqlClient =
   globalForDb.sqlClient ??
   postgres(connectionString, {
     ssl: "require",
-    max: process.env.NODE_ENV === "production" ? 10 : 5,
-    idle_timeout: 60,
-    max_lifetime: 60 * 30,
+    max: process.env.NODE_ENV === "production" ? 10 : 1,
+    idle_timeout: 15, // Reclaim idle connections quickly before Supavisor pooler drops them
+    max_lifetime: 60 * 5, // 5 minutes max connection lifetime
     connect_timeout: 10,
-    prepare: false, // Avoid prepared statement conflicts with Supavisor / PgBouncer
+    prepare: false, // Mandatory for Supavisor / PgBouncer transaction-mode pooler
   });
 
 if (process.env.NODE_ENV !== "production") {
   globalForDb.sqlClient = sqlClient;
 }
 
-// Rename to dbQuery to provide backwards-compatible { rows } result
+// Rename to dbQuery to provide backwards-compatible { rows } result with automatic recovery
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const dbQuery = async (strings: TemplateStringsArray, ...values: any[]) => {
   if (!connectionString) {
     throw new Error("POSTGRES_URL environment variable is not defined");
   }
-  const result = await sqlClient(strings, ...values);
-  return { rows: result };
+  try {
+    const result = await sqlClient(strings, ...values);
+    return { rows: result };
+  } catch (error: unknown) {
+    // Check if error is due to an idle connection dropped by Supabase's transaction pooler
+    const err = error as { code?: string; message?: string };
+    const isConnDropped =
+      err?.code === "CONNECTION_CLOSED" ||
+      err?.code === "ECONNRESET" ||
+      err?.code === "EPIPE" ||
+      String(err?.message).includes("CONNECTION_CLOSED") ||
+      String(err?.message).includes("connection closed");
+
+    if (isConnDropped) {
+      console.warn("Database connection dropped by pooler. Retrying query on a fresh connection...");
+      const retryResult = await sqlClient(strings, ...values);
+      return { rows: retryResult };
+    }
+    throw error;
+  }
 };
 
 /**
@@ -60,10 +78,12 @@ export async function initDb() {
         excerpt TEXT,
         date DATE NOT NULL,
         content TEXT NOT NULL,
+        cover_image TEXT,
         created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
       );
     `;
+    await sqlClient`ALTER TABLE blog_posts ADD COLUMN IF NOT EXISTS cover_image TEXT;`;
 
     // 2. Certificates Table
     await sqlClient`

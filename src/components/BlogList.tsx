@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { motion, AnimatePresence } from "framer-motion"
 import { ArrowRight, Calendar, Clock, Search, X, Sparkles, BookOpen } from "lucide-react"
 import { Post } from "@/lib/blog"
@@ -145,7 +146,18 @@ export function BlogList({ posts }: BlogListProps) {
                     className="group relative rounded-3xl border border-primary/30 bg-card/75 backdrop-blur-xl p-8 sm:p-12 shadow-2xl transition-all duration-300 hover:border-primary/60 hover:shadow-[0_20px_40px_-15px_rgba(var(--primary),0.2)]"
                 >
                     <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
-                        <div className="space-y-4 max-w-2xl">
+                        {featuredPost.cover_image && featuredPost.cover_image.trim() ? (
+                            <div className="relative w-full lg:w-96 aspect-16/10 rounded-2xl overflow-hidden border border-border/80 shrink-0 bg-muted/40 shadow-md">
+                                <Image
+                                    src={featuredPost.cover_image}
+                                    alt={featuredPost.title}
+                                    fill
+                                    unoptimized
+                                    className="object-cover transition-transform duration-700 group-hover:scale-105"
+                                />
+                            </div>
+                        ) : null}
+                        <div className="space-y-4 max-w-2xl flex-1">
                             <div className="flex items-center gap-3 text-xs">
                                 <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/15 border border-primary/30 px-3 py-1 font-semibold text-primary">
                                     <Sparkles className="w-3 h-3" />
@@ -181,7 +193,7 @@ export function BlogList({ posts }: BlogListProps) {
                             </div>
                         </div>
 
-                        <div className="lg:pl-6 flex items-center">
+                        <div className="lg:pl-4 flex items-center shrink-0">
                             <Link
                                 href={`/blog/${featuredPost.slug}`}
                                 className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-all duration-200 group-hover:translate-x-1 shadow-lg shadow-primary/20 w-full sm:w-auto"
@@ -226,6 +238,17 @@ export function BlogList({ posts }: BlogListProps) {
                                         className="group relative flex flex-col justify-between rounded-2xl border border-border/70 bg-card/65 backdrop-blur-md p-6 sm:p-7 transition-all duration-300 hover:border-primary/50 hover:bg-card/90 hover:shadow-[0_12px_32px_-8px_rgba(0,0,0,0.5)] hover:-translate-y-1"
                                     >
                                         <div>
+                                            {post.cover_image && post.cover_image.trim() ? (
+                                                <div className="relative aspect-video w-full rounded-xl overflow-hidden mb-5 bg-muted/40 border border-border/40">
+                                                    <Image
+                                                        src={post.cover_image}
+                                                        alt={post.title}
+                                                        fill
+                                                        unoptimized
+                                                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                                                    />
+                                                </div>
+                                            ) : null}
                                             {/* Meta Header */}
                                             <div className="flex items-center justify-between gap-2 mb-4 text-xs">
                                                 <span className="inline-flex items-center rounded-full bg-primary/10 border border-primary/25 px-2.5 py-0.5 font-medium text-primary">

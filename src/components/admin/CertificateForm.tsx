@@ -7,6 +7,8 @@ import { Save, Upload, X, Loader2 } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 
+import { compressImageFile } from "@/lib/image-utils"
+
 interface FormState {
     error?: string
 }
@@ -31,12 +33,19 @@ export function CertificateForm({ certificate }: { certificate?: Certificate }) 
         if (!file) return
 
         setIsUploading(true)
-        const reader = new FileReader()
-        reader.onloadend = () => {
-            setPreview(reader.result as string)
+        try {
+            const compressed = await compressImageFile(file, 1200, 1200, 0.85)
+            setPreview(compressed)
+        } catch (err) {
+            console.error("Failed to compress certificate image, falling back:", err)
+            const reader = new FileReader()
+            reader.onloadend = () => {
+                setPreview(reader.result as string)
+            }
+            reader.readAsDataURL(file)
+        } finally {
             setIsUploading(false)
         }
-        reader.readAsDataURL(file)
     }
 
     const clearImage = () => {

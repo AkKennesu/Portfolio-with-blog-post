@@ -1,7 +1,7 @@
 "use server";
 
 import { BlogService } from "@/services/blog.service";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { ApiError } from "@/lib/errors";
 
@@ -14,6 +14,7 @@ export async function createPost(formData: FormData) {
       excerpt: formData.get("excerpt") as string,
       date: formData.get("date") as string,
       content: formData.get("content") as string,
+      cover_image: (formData.get("cover_image") as string) || "",
     };
 
     await BlogService.createPost(rawData);
@@ -28,6 +29,7 @@ export async function createPost(formData: FormData) {
     revalidatePath("/blog");
     revalidatePath("/admin/dashboard");
     revalidatePath("/");
+    revalidateTag("admin-unified-data");
     redirect("/admin/dashboard?tab=blog");
   }
 }
@@ -42,6 +44,7 @@ export async function updatePost(id: number, formData: FormData) {
       excerpt: formData.get("excerpt") as string,
       date: formData.get("date") as string,
       content: formData.get("content") as string,
+      cover_image: (formData.get("cover_image") as string) || "",
     };
 
     const result = await BlogService.updatePost(id, rawData);
@@ -58,6 +61,7 @@ export async function updatePost(id: number, formData: FormData) {
     if (newSlug) revalidatePath(`/blog/${newSlug}`);
     revalidatePath("/admin/dashboard");
     revalidatePath("/");
+    revalidateTag("admin-unified-data");
     redirect("/admin/dashboard?tab=blog");
   }
 }
@@ -68,6 +72,7 @@ export async function deletePost(id: number): Promise<{ success: boolean; error?
     revalidatePath("/blog");
     revalidatePath("/admin/dashboard");
     revalidatePath("/");
+    revalidateTag("admin-unified-data");
     return { success: true };
   } catch (error) {
     console.error("Failed to delete post:", error);
@@ -88,6 +93,7 @@ export async function deletePosts(ids: number[]): Promise<{ success: boolean; er
     revalidatePath("/blog");
     revalidatePath("/admin/dashboard");
     revalidatePath("/");
+    revalidateTag("admin-unified-data");
     return { success: true };
   } catch (error) {
     console.error("Failed to batch delete posts:", error);
