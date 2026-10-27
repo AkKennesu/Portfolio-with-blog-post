@@ -21,7 +21,7 @@ export default async function Home() {
   return (
     <div className="flex flex-col">
       <Hero />
-      <About />
+      <About settings={settings} />
       <Skills />
       <Projects />
       <Timeline certificates={certificates} />
