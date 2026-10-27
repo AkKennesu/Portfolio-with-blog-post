@@ -6,36 +6,41 @@ Featuring an enterprise-grade **Clean Architecture** (Repository-Service-Server 
 
 ---
 
-## 🚀 Key Highlights & What's New
+## Key Highlights & What's New
 
-### 🛡️ Enterprise Clean Architecture & Performance
+### Enterprise Clean Architecture & Performance
+
 - **Repository-Service-Action Pattern**: Completely decoupled architecture separating raw SQL data access (`src/repositories/`), business logic (`src/services/`), and type-safe server actions (`src/actions/`).
 - **Request Deduplication**: Powered by React 19's `cache()` in repositories to eliminate duplicate database queries across layout and component render trees.
 - **Single-Hop Aggregation**: Dashboard metrics and recent previews load in a single network roundtrip using PostgreSQL CTEs and `json_agg()`.
 - **Atomic Operations**: Single-statement batch upserts for settings and certificates with `ON CONFLICT` clauses.
 
-### 🔒 Supabase & PostgreSQL Hardened Security
+### Supabase & PostgreSQL Hardened Security
+
 - **Transaction Connection Pooling**: Configured for Supabase's transaction pooler (Supavisor on port 6543) with `prepare: false` to prevent prepared-statement collisions on edge/serverless runtimes.
 - **Row-Level Security (RLS)**: Active across all tables (`blog_posts`, `certificates`, `messages`, `site_settings`, `admin_users`).
 - **Principle of Least Privilege**: Anonymous users have zero read/write access to administrative records, read-only access to published content, and insert-only access for contact inquiries.
 - **Strict Data Integrity**: Modern schema using `BIGINT GENERATED ALWAYS AS IDENTITY`, native `DATE` and `TIMESTAMPTZ` types, year validation constraints (`CHECK (year BETWEEN 1970 AND 2100)`), and partial indexes for unread messages.
 - **Declarative Migrations**: Version-controlled SQL migrations located in `supabase/migrations/`.
 
-### 📰 Overhauled Blog Experience
+### Overhauled Blog Experience
+
 - **Live Search & Category Filtering**: Instant client-side search across titles, excerpts, and content with dynamic category pills (TypeScript, Performance, Security, Design Systems, Frontend Architecture, etc.).
 - **Hero Article Spotlight**: Automatic featured presentation for the latest article.
 - **Reading Time & Date Formatting**: Automatic WPM-based read time calculation and UTC-safe date presentation.
 - **Social Sharing Toolbar**: Interactive floating share bar supporting X/Twitter, LinkedIn, and one-click link copying with real-time reading scroll progress.
 - **Prose Typography**: Tailored typography with code block styling and dark glassmorphic aesthetics.
 
-### 🎨 Dynamic Site Customization & Personal Info Hub
+### Dynamic Site Customization & Personal Info Hub
+
 - **Unified Settings Console (`/admin/settings`)**:
   - **Dynamic Copy**: Edit About Me paragraphs directly from the admin panel.
   - **Brand Accent Color**: Live color picker to dynamically customize the portfolio's primary accent hue.
   - **Dynamic CV Management**: Upload and update your resume/CV (PDF) with instant public download and viewer integration.
   - **Custom Social Links Manager**: Dynamically add, reorder, and configure custom social buttons with brand-specific hover color glows (GitHub, LinkedIn, Twitter/X, Discord, YouTube, Facebook, Twitch, Instagram, Email, Website).
 
-### ⚡ Batch Operations & Admin Console
+### Batch Operations & Admin Console
+
 - **Multi-Select Batch Deletions**: Bulk delete articles, certificates, or contact messages simultaneously with confirmation safeguards.
 - **Sticky / Fixed Admin Navigation**: Persistent desktop sidebar and mobile-optimized slideout navigation.
 - **Contact Message Center**: Read, filter unread, star as important, and manage visitor messages in real-time.
@@ -43,19 +48,19 @@ Featuring an enterprise-grade **Clean Architecture** (Repository-Service-Server 
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| **Framework** | [Next.js 15](https://nextjs.org/) (App Router, Turbopack) |
-| **UI Library** | [React 19](https://react.dev/) |
-| **Language** | [TypeScript 5](https://www.typescriptlang.org/) |
-| **Styling** | [Tailwind CSS v4](https://tailwindcss.com/) & [Lucide Icons](https://lucide.dev/) |
-| **3D & Motion** | [Three.js](https://threejs.org/), [GSAP](https://gsap.com/), [Framer Motion](https://www.framer.com/motion/), [Lenis](https://lenis.darkroom.engineering/) |
-| **Database** | [PostgreSQL](https://www.postgresql.org/) on [Supabase](https://supabase.com/) |
-| **DB Client** | [postgres.js](https://github.com/porsager/postgres) (Supavisor Transaction Pooler) |
-| **Auth & Security** | [jose](https://github.com/panva/jose) (JWT), [bcryptjs](https://github.com/dcodeIO/bcrypt.js), Next.js Middleware |
-| **Validation & Sanitization** | [Zod](https://zod.dev/) & [sanitize-html](https://github.com/apostrophecms/sanitize-html) |
+| Layer                         | Technology                                                                                                                                                 |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Framework**                 | [Next.js 15](https://nextjs.org/) (App Router, Turbopack)                                                                                                  |
+| **UI Library**                | [React 19](https://react.dev/)                                                                                                                             |
+| **Language**                  | [TypeScript 5](https://www.typescriptlang.org/)                                                                                                            |
+| **Styling**                   | [Tailwind CSS v4](https://tailwindcss.com/) & [Lucide Icons](https://lucide.dev/)                                                                          |
+| **3D & Motion**               | [Three.js](https://threejs.org/), [GSAP](https://gsap.com/), [Framer Motion](https://www.framer.com/motion/), [Lenis](https://lenis.darkroom.engineering/) |
+| **Database**                  | [PostgreSQL](https://www.postgresql.org/) on [Supabase](https://supabase.com/)                                                                             |
+| **DB Client**                 | [postgres.js](https://github.com/porsager/postgres) (Supavisor Transaction Pooler)                                                                         |
+| **Auth & Security**           | [jose](https://github.com/panva/jose) (JWT), [bcryptjs](https://github.com/dcodeIO/bcrypt.js), Next.js Middleware                                          |
+| **Validation & Sanitization** | [Zod](https://zod.dev/) & [sanitize-html](https://github.com/apostrophecms/sanitize-html)                                                                  |
 
 ---
 
@@ -129,6 +134,7 @@ npm install
 ```
 
 ### 3. Configure Environment Variables
+
 Create a `.env.local` file in the root directory (refer to `.env.example`):
 
 ```env
@@ -151,6 +157,7 @@ ADMIN_PASSWORD="your-secure-admin-password-here"
 > **Supabase Connection Pooling**: Always connect to Supabase through the **Transaction Pooler** (`port 6543` with `?sslmode=require`). The database client in `src/lib/db.ts` is pre-configured with `prepare: false` to ensure compatibility with serverless runtimes.
 
 ### 4. Run the Development Server
+
 ```bash
 npm run dev
 ```
@@ -164,6 +171,7 @@ Open [http://localhost:3000](http://localhost:3000) to view the portfolio.
 You have two simple options to initialize and populate the database:
 
 ### Option A: In-Dashboard One-Click Setup (Recommended)
+
 1. Start the app and navigate to [http://localhost:3000/admin/login](http://localhost:3000/admin/login).
 2. Enter your configured `ADMIN_PASSWORD` to log in.
 3. On the **Admin Dashboard**, click **"Initialize Database"**. This will automatically create:
@@ -177,36 +185,39 @@ You have two simple options to initialize and populate the database:
 4. Click **"Sync with Static Data"** to automatically seed your database with the pre-configured blog articles and certificates from local files.
 
 ### Option B: Supabase CLI / Direct SQL
+
 You can also run the migrations directly against your Supabase project:
+
 ```bash
 # Push versioned migrations to your linked Supabase project
 npx supabase db push
 ```
+
 Or copy the SQL commands from [`src/lib/schema.sql`](file:///c:/Users/arnke/OneDrive/Tài%20liệu/github%20projects/portfolio/Portfolio-with-blog-post/src/lib/schema.sql) directly into the Supabase SQL Editor.
 
 ---
 
 ## 🎛️ Administrative CMS Guide
 
-| Section | Route | Capabilities |
-|---|---|---|
-| **Overview Dashboard** | `/admin/dashboard` | Real-time counts, unread messages indicator, recent activity previews, database initialization, and static data sync. |
-| **Personal Info / Settings** | `/admin/settings` | Edit About Me paragraphs, live brand accent color picker, dynamic CV upload, and social links manager with brand hover glows. |
-| **Blog Manager** | `/admin/blog` | Create, edit, preview, delete, and multi-select **batch delete** blog articles. |
-| **Certificates** | `/admin/certificates` | Manage credentials, issue years, credential images, and perform **batch deletions**. |
-| **Messages Center** | `/admin/messages` | Read visitor inquiries, toggle unread/read states, star priority messages, and **batch delete** contact submissions. |
+| Section                      | Route                 | Capabilities                                                                                                                  |
+| ---------------------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| **Overview Dashboard**       | `/admin/dashboard`    | Real-time counts, unread messages indicator, recent activity previews, database initialization, and static data sync.         |
+| **Personal Info / Settings** | `/admin/settings`     | Edit About Me paragraphs, live brand accent color picker, dynamic CV upload, and social links manager with brand hover glows. |
+| **Blog Manager**             | `/admin/blog`         | Create, edit, preview, delete, and multi-select **batch delete** blog articles.                                               |
+| **Certificates**             | `/admin/certificates` | Manage credentials, issue years, credential images, and perform **batch deletions**.                                          |
+| **Messages Center**          | `/admin/messages`     | Read visitor inquiries, toggle unread/read states, star priority messages, and **batch delete** contact submissions.          |
 
 ---
 
 ## 📜 Available Scripts
 
-| Command | Description |
-|---|---|
-| `npm run dev` | Runs the Next.js development server with **Turbopack** enabled |
-| `npm run dev:webpack` | Runs the development server with standard Webpack fallback |
-| `npm run build` | Builds the optimized production application |
-| `npm run start` | Starts the production Next.js server |
-| `npm run lint` | Runs ESLint checks across the codebase |
+| Command               | Description                                                    |
+| --------------------- | -------------------------------------------------------------- |
+| `npm run dev`         | Runs the Next.js development server with **Turbopack** enabled |
+| `npm run dev:webpack` | Runs the development server with standard Webpack fallback     |
+| `npm run build`       | Builds the optimized production application                    |
+| `npm run start`       | Starts the production Next.js server                           |
+| `npm run lint`        | Runs ESLint checks across the codebase                         |
 
 ---
 
@@ -222,5 +233,6 @@ Or copy the SQL commands from [`src/lib/schema.sql`](file:///c:/Users/arnke/OneD
 
 ## 👤 Author
 
-Built with ❤️ by **[Arn Kenneth](https://github.com/AkKennesu)**
+Built by **[Arn Kenneth](https://github.com/AkKennesu)**
+
 - GitHub: [@AkKennesu](https://github.com/AkKennesu)
