@@ -1,14 +1,14 @@
 "use client"
 
+import { memo, useCallback } from "react"
 import { motion } from "framer-motion"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import Link from "next/link"
 import { projects } from "@/lib/data"
 import useEmblaCarousel from "embla-carousel-react"
-import { useCallback } from "react"
 import { Button } from "@/components/ui/button"
 
-export function Projects() {
+export const Projects = memo(function Projects() {
     const [emblaRef, emblaApi] = useEmblaCarousel({ align: "start", loop: true })
 
     const scrollPrev = useCallback(() => {
@@ -33,7 +33,7 @@ export function Projects() {
                     <div className="overflow-hidden" ref={emblaRef}>
                         <div className="flex touch-pan-y -ml-4">
                             {projects.map((project, index) => (
-                                <div className="flex-[0_0_100%] md:flex-[0_0_50%] lg:flex-[0_0_33.333%] min-w-0 pl-4 py-4" key={index}>
+                                <div className="flex-[0_0_100%] md:flex-[0_0_50%] lg:flex-[0_0_33.333%] min-w-0 pl-4 py-4" key={project.title}>
                                     <ProjectCard project={project} index={index} />
                                 </div>
                             ))}
@@ -74,9 +74,9 @@ export function Projects() {
             </div>
         </section>
     )
-}
+})
 
-function ProjectCard({ project, index }: { project: typeof projects[0], index: number }) {
+const ProjectCard = memo(function ProjectCard({ project, index }: { project: typeof projects[0], index: number }) {
     return (
         <motion.article
             initial={{ opacity: 0, y: 20 }}
@@ -114,4 +114,4 @@ function ProjectCard({ project, index }: { project: typeof projects[0], index: n
             </div>
         </motion.article>
     )
-}
+})

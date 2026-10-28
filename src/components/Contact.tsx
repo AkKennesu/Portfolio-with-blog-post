@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState, useEffect, useRef } from "react"
+import { useActionState, useEffect, useRef, useMemo, memo } from "react"
 import { motion } from "framer-motion"
 import {
     Github, Twitter, Linkedin, Mail, Send, Facebook, Instagram, Youtube,
@@ -27,12 +27,18 @@ export const SOCIAL_PLATFORMS: Record<string, { icon: LucideIcon, color: string 
     LinkIcon: { icon: LinkIcon, color: "var(--primary)" },
 }
 
-export function Contact({ settings }: { settings?: SettingsMap }) {
+export const Contact = memo(function Contact({ settings }: { settings?: SettingsMap }) {
     const [state, formAction, isPending] = useActionState(submitContact, initialState)
 
-    const customLinks = settings?.custom_social_links
-        ? JSON.parse(settings.custom_social_links) as { label: string, url: string, icon: string }[]
-        : []
+    const customLinks = useMemo(() => {
+        if (!settings?.custom_social_links) return []
+        try {
+            const parsed = JSON.parse(settings.custom_social_links)
+            return Array.isArray(parsed) ? (parsed as { label: string, url: string, icon: string }[]) : []
+        } catch {
+            return []
+        }
+    }, [settings?.custom_social_links])
 
     const formRef = useRef<HTMLFormElement>(null)
 
@@ -61,7 +67,7 @@ export function Contact({ settings }: { settings?: SettingsMap }) {
 
                                     return (
                                         <SocialLink
-                                            key={i}
+                                            key={`${link.label}-${i}`}
                                             href={href || "#"}
                                             icon={Icon}
                                             color={config.color}
@@ -138,4 +144,4 @@ export function Contact({ settings }: { settings?: SettingsMap }) {
             </div>
         </section>
     )
-}
+})

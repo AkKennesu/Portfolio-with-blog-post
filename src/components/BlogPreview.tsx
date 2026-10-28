@@ -1,5 +1,6 @@
 "use client"
 
+import { memo, useCallback } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
@@ -31,8 +32,12 @@ const cardVariants: Variants = {
     },
 }
 
-export function BlogPreview({ posts }: { posts: Post[] }) {
+export const BlogPreview = memo(function BlogPreview({ posts }: { posts: Post[] }) {
     const router = useRouter()
+
+    const handleViewAll = useCallback(() => {
+        router.push("/blog")
+    }, [router])
 
     return (
         <section id="blog" className="py-24 sm:py-32 relative overflow-hidden">
@@ -58,78 +63,12 @@ export function BlogPreview({ posts }: { posts: Post[] }) {
                     viewport={{ once: true, margin: "-60px" }}
                     className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto mb-16"
                 >
-                    {posts.map((post, idx) => {
-                        const readTime = estimateReadingTime(post.content, post.excerpt)
-                        const category = getPostCategory(post)
-                        const formattedDate = formatBlogDate(post.date)
-                        const isDataUri = Boolean(post.cover_image?.startsWith("data:"))
-
-                        return (
-                            <motion.article
-                                key={post.id ? `blog-preview-${post.id}` : post.slug || `blog-preview-${idx}`}
-                                variants={cardVariants}
-                                className="group relative flex flex-col justify-between rounded-2xl border border-border/70 bg-card/65 backdrop-blur-md p-6 sm:p-7 transition-all duration-300 hover:border-primary/50 hover:bg-card/90 hover:shadow-[0_12px_32px_-8px_rgba(0,0,0,0.5)] hover:-translate-y-1"
-                            >
-                                {/* Card Header: Tag & Read Time */}
-                                <div>
-                                    {post.cover_image && post.cover_image.trim() ? (
-                                        <div className="relative aspect-video w-full rounded-xl overflow-hidden mb-5 bg-muted/40 border border-border/40">
-                                            <Image
-                                                src={post.cover_image}
-                                                alt={post.title}
-                                                fill
-                                                unoptimized={isDataUri}
-                                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                                loading="lazy"
-                                                className="object-cover transition-transform duration-500 group-hover:scale-105"
-                                            />
-                                        </div>
-                                    ) : null}
-                                    <div className="flex items-center justify-between gap-2 mb-4 text-xs">
-                                        <span className="inline-flex items-center rounded-full bg-primary/10 border border-primary/25 px-2.5 py-0.5 font-medium text-primary">
-                                            {category}
-                                        </span>
-                                        <div className="flex items-center gap-1.5 text-muted-foreground">
-                                            <Clock className="w-3.5 h-3.5" />
-                                            <span>{readTime}</span>
-                                        </div>
-                                    </div>
-
-                                    {/* Date */}
-                                    {formattedDate && (
-                                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground/80 mb-2.5">
-                                            <Calendar className="w-3.5 h-3.5" />
-                                            <time dateTime={post.date}>{formattedDate}</time>
-                                        </div>
-                                    )}
-
-                                    {/* Title */}
-                                    <h3 className="text-xl font-bold tracking-tight text-foreground group-hover:text-primary transition-colors duration-200 line-clamp-2 mb-3">
-                                        <Link href={`/blog/${post.slug}`} className="focus:outline-none focus-visible:underline">
-                                            {post.title}
-                                        </Link>
-                                    </h3>
-
-                                    {/* Excerpt */}
-                                    <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3 mb-6">
-                                        {post.excerpt}
-                                    </p>
-                                </div>
-
-                                {/* Footer CTA */}
-                                <div className="pt-4 border-t border-border/50 flex items-center justify-between">
-                                    <Link
-                                        href={`/blog/${post.slug}`}
-                                        className="inline-flex items-center text-sm font-semibold text-primary transition-colors hover:text-primary/80"
-                                        aria-label={`Read article: ${post.title}`}
-                                    >
-                                        <span>Read article</span>
-                                        <ArrowRight className="ml-1.5 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-                                    </Link>
-                                </div>
-                            </motion.article>
-                        )
-                    })}
+                    {posts.map((post, idx) => (
+                        <BlogPreviewCard
+                            key={post.id ? `blog-preview-${post.id}` : post.slug || `blog-preview-${idx}`}
+                            post={post}
+                        />
+                    ))}
                 </motion.div>
 
                 {/* Bottom CTA to Blog Archive */}
@@ -137,11 +76,87 @@ export function BlogPreview({ posts }: { posts: Post[] }) {
                     <EncryptButton
                         targetText="View All Articles"
                         icon={ArrowRight}
-                        onClick={() => router.push("/blog")}
+                        onClick={handleViewAll}
                         className="w-full sm:w-auto"
                     />
                 </div>
             </div>
         </section>
     )
+})
+
+interface BlogPreviewCardProps {
+    post: Post
 }
+
+const BlogPreviewCard = memo(function BlogPreviewCard({ post }: BlogPreviewCardProps) {
+    const readTime = estimateReadingTime(post.content, post.excerpt)
+    const category = getPostCategory(post)
+    const formattedDate = formatBlogDate(post.date)
+    const isDataUri = Boolean(post.cover_image?.startsWith("data:"))
+
+    return (
+        <motion.article
+            variants={cardVariants}
+            className="group relative flex flex-col justify-between rounded-2xl border border-border/70 bg-card/65 backdrop-blur-md p-6 sm:p-7 transition-all duration-300 hover:border-primary/50 hover:bg-card/90 hover:shadow-[0_12px_32px_-8px_rgba(0,0,0,0.5)] hover:-translate-y-1"
+        >
+            {/* Card Header: Tag & Read Time */}
+            <div>
+                {post.cover_image && post.cover_image.trim() ? (
+                    <div className="relative aspect-video w-full rounded-xl overflow-hidden mb-5 bg-muted/40 border border-border/40">
+                        <Image
+                            src={post.cover_image}
+                            alt={post.title}
+                            fill
+                            unoptimized={isDataUri}
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            loading="lazy"
+                            className="object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                    </div>
+                ) : null}
+                <div className="flex items-center justify-between gap-2 mb-4 text-xs">
+                    <span className="inline-flex items-center rounded-full bg-primary/10 border border-primary/25 px-2.5 py-0.5 font-medium text-primary">
+                        {category}
+                    </span>
+                    <div className="flex items-center gap-1.5 text-muted-foreground">
+                        <Clock className="w-3.5 h-3.5" />
+                        <span>{readTime}</span>
+                    </div>
+                </div>
+
+                {/* Date */}
+                {formattedDate && (
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground/80 mb-2.5">
+                        <Calendar className="w-3.5 h-3.5" />
+                        <time dateTime={post.date}>{formattedDate}</time>
+                    </div>
+                )}
+
+                {/* Title */}
+                <h3 className="text-xl font-bold tracking-tight text-foreground group-hover:text-primary transition-colors duration-200 line-clamp-2 mb-3">
+                    <Link href={`/blog/${post.slug}`} className="focus:outline-none focus-visible:underline">
+                        {post.title}
+                    </Link>
+                </h3>
+
+                {/* Excerpt */}
+                <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3 mb-6">
+                    {post.excerpt}
+                </p>
+            </div>
+
+            {/* Footer CTA */}
+            <div className="pt-4 border-t border-border/50 flex items-center justify-between">
+                <Link
+                    href={`/blog/${post.slug}`}
+                    className="inline-flex items-center text-sm font-semibold text-primary transition-colors hover:text-primary/80"
+                    aria-label={`Read article: ${post.title}`}
+                >
+                    <span>Read article</span>
+                    <ArrowRight className="ml-1.5 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                </Link>
+            </div>
+        </motion.article>
+    )
+})

@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Geo } from "next/font/google";
-import dynamic from "next/dynamic";
 import "./globals.css";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -9,11 +8,7 @@ import { PageTransition } from "@/components/PageTransition";
 import { ScrollProgress } from "@/components/ScrollProgress";
 import { MobileNav } from "@/components/MobileNav";
 import { SmoothScrolling } from "@/components/SmoothScrolling";
-
-// Lazy-load Three.js particle canvas background
-const SpotlightBackground = dynamic(
-  () => import("@/components/SpotlightBackground").then((mod) => mod.SpotlightBackground)
-);
+import { SpotlightBackground } from "@/components/SpotlightBackground";
 
 const geo = Geo({
   subsets: ["latin"],

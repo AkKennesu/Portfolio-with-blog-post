@@ -1,13 +1,10 @@
-import dynamic from "next/dynamic";
 import { Hero } from "@/components/Hero";
 import { About } from "@/components/About";
 import { Skills } from "@/components/Skills";
-
-// Dynamically import below-the-fold components for code splitting & lazy loading
-const Projects = dynamic(() => import("@/components/Projects").then((mod) => mod.Projects));
-const Timeline = dynamic(() => import("@/components/Timeline").then((mod) => mod.Timeline));
-const BlogPreview = dynamic(() => import("@/components/BlogPreview").then((mod) => mod.BlogPreview));
-const Contact = dynamic(() => import("@/components/Contact").then((mod) => mod.Contact));
+import { Projects } from "@/components/Projects";
+import { Timeline } from "@/components/Timeline";
+import { BlogPreview } from "@/components/BlogPreview";
+import { Contact } from "@/components/Contact";
 
 import { getPosts } from "@/lib/blog";
 import { getCertificates } from "@/lib/certificates";

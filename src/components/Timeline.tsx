@@ -1,18 +1,26 @@
 "use client"
 
+import { memo, useCallback, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import Image from "next/image"
 import { educationItems } from "@/lib/data"
 import useEmblaCarousel from "embla-carousel-react"
 import Autoplay from "embla-carousel-autoplay"
-import { useCallback, useState } from "react"
 import { ChevronLeft, ChevronRight, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 import { type Certificate } from "@/lib/certificates"
 
-export function Timeline({ certificates }: { certificates: Certificate[] }) {
+export const Timeline = memo(function Timeline({ certificates }: { certificates: Certificate[] }) {
     const [selectedCertificate, setSelectedCertificate] = useState<Certificate | null>(null)
+
+    const handleSelectCertificate = useCallback((cert: Certificate) => {
+        setSelectedCertificate(cert)
+    }, [])
+
+    const handleClose = useCallback(() => {
+        setSelectedCertificate(null)
+    }, [])
 
     return (
         <section id="education" className="py-24 sm:py-32 bg-muted/50 overflow-hidden">
@@ -55,7 +63,7 @@ export function Timeline({ certificates }: { certificates: Certificate[] }) {
                     </p>
                 </div>
                 {certificates && certificates.length > 0 ? (
-                    <AchievementCarousel certificates={certificates} onCardClick={setSelectedCertificate} />
+                    <AchievementCarousel certificates={certificates} onCardClick={handleSelectCertificate} />
                 ) : (
                     <div className="text-center py-12 text-muted-foreground">
                         <p>No certificates available yet.</p>
@@ -69,7 +77,7 @@ export function Timeline({ certificates }: { certificates: Certificate[] }) {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        onClick={() => setSelectedCertificate(null)}
+                        onClick={handleClose}
                         className="fixed inset-0 z-100 flex items-center justify-center bg-black/95 p-4 md:p-10 cursor-zoom-out"
                     >
                         <motion.button
@@ -77,7 +85,7 @@ export function Timeline({ certificates }: { certificates: Certificate[] }) {
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0.5, opacity: 0 }}
                             className="absolute top-6 right-6 text-white bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors z-110"
-                            onClick={() => setSelectedCertificate(null)}
+                            onClick={handleClose}
                         >
                             <X className="w-6 h-6" />
                         </motion.button>
@@ -110,15 +118,17 @@ export function Timeline({ certificates }: { certificates: Certificate[] }) {
             </AnimatePresence>
         </section>
     )
-}
+})
 
-function AchievementCarousel({
-    certificates,
-    onCardClick,
-}: {
+interface AchievementCarouselProps {
     certificates: Certificate[]
     onCardClick: (item: Certificate) => void
-}) {
+}
+
+const AchievementCarousel = memo(function AchievementCarousel({
+    certificates,
+    onCardClick,
+}: AchievementCarouselProps) {
     const [emblaRef, emblaApi] = useEmblaCarousel(
         { align: "start", loop: true },
         [Autoplay({ delay: 5000, stopOnInteraction: false })]
@@ -144,7 +154,7 @@ function AchievementCarousel({
                 <div className="flex touch-pan-y -ml-4">
                     {certificates.map((item, index) => (
                         <div className="flex-[0_0_100%] md:flex-[0_0_50%] lg:flex-[0_0_33.333%] min-w-0 pl-4 py-4" key={item.id ?? index}>
-                            <AchievementCard item={item} onClick={() => onCardClick(item)} />
+                            <AchievementCard item={item} onClick={onCardClick} />
                         </div>
                     ))}
                 </div>
@@ -181,14 +191,23 @@ function AchievementCarousel({
             </div>
         </motion.div>
     )
+})
+
+interface AchievementCardProps {
+    item: Certificate
+    onClick: (item: Certificate) => void
 }
 
-function AchievementCard({ item, onClick }: { item: Certificate, onClick: () => void }) {
+const AchievementCard = memo(function AchievementCard({ item, onClick }: AchievementCardProps) {
     const isDataUri = Boolean(item.image?.startsWith("data:"));
+
+    const handleClick = useCallback(() => {
+        onClick(item)
+    }, [onClick, item])
 
     return (
         <div
-            onClick={onClick}
+            onClick={handleClick}
             className="group relative m-0 flex h-72 w-full max-w-100 rounded-xl shadow-xl ring-gray-900/5 sm:mx-auto cursor-zoom-in overflow-hidden"
         >
             <div className="relative z-10 h-full w-full overflow-hidden rounded-xl border border-gray-200 opacity-90 transition duration-300 ease-in-out group-hover:opacity-100 dark:border-gray-700 bg-muted/30">
@@ -219,4 +238,4 @@ function AchievementCard({ item, onClick }: { item: Certificate, onClick: () => 
             </div>
         </div>
     )
-}
+})

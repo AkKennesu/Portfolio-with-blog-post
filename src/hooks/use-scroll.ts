@@ -6,11 +6,25 @@ export function useScroll(threshold = 20) {
     const [scrolled, setScrolled] = useState(false)
 
     useEffect(() => {
+        let rafId: number | null = null
+
         const handleScroll = () => {
-            setScrolled(window.scrollY > threshold)
+            if (rafId !== null) return
+            rafId = requestAnimationFrame(() => {
+                rafId = null
+                const isOver = window.scrollY > threshold
+                setScrolled((prev) => (prev !== isOver ? isOver : prev))
+            })
         }
-        window.addEventListener("scroll", handleScroll)
-        return () => window.removeEventListener("scroll", handleScroll)
+
+        // Set initial state
+        handleScroll()
+
+        window.addEventListener("scroll", handleScroll, { passive: true })
+        return () => {
+            window.removeEventListener("scroll", handleScroll)
+            if (rafId !== null) cancelAnimationFrame(rafId)
+        }
     }, [threshold])
 
     return scrolled
