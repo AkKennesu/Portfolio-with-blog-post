@@ -91,6 +91,7 @@ export function Timeline({ certificates }: { certificates: Certificate[] }) {
                                     src={selectedCertificate.image}
                                     className="max-w-full max-h-[70%] object-contain rounded-lg shadow-2xl"
                                     alt={selectedCertificate.title}
+                                    loading="lazy"
                                 />
                             ) : null}
                             <motion.div
@@ -111,7 +112,13 @@ export function Timeline({ certificates }: { certificates: Certificate[] }) {
     )
 }
 
-function AchievementCarousel({ certificates, onCardClick }: { certificates: Certificate[], onCardClick: (item: Certificate) => void }) {
+function AchievementCarousel({
+    certificates,
+    onCardClick,
+}: {
+    certificates: Certificate[]
+    onCardClick: (item: Certificate) => void
+}) {
     const [emblaRef, emblaApi] = useEmblaCarousel(
         { align: "start", loop: true },
         [Autoplay({ delay: 5000, stopOnInteraction: false })]
@@ -177,6 +184,8 @@ function AchievementCarousel({ certificates, onCardClick }: { certificates: Cert
 }
 
 function AchievementCard({ item, onClick }: { item: Certificate, onClick: () => void }) {
+    const isDataUri = Boolean(item.image?.startsWith("data:"));
+
     return (
         <div
             onClick={onClick}
@@ -187,7 +196,9 @@ function AchievementCard({ item, onClick }: { item: Certificate, onClick: () => 
                     <Image
                         src={item.image}
                         fill
-                        unoptimized
+                        unoptimized={isDataUri}
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        loading="lazy"
                         className="block h-full w-full scale-100 transform object-cover object-center opacity-100 transition duration-300 group-hover:scale-110"
                         alt={item.title}
                     />
@@ -209,4 +220,3 @@ function AchievementCard({ item, onClick }: { item: Certificate, onClick: () => 
         </div>
     )
 }
-

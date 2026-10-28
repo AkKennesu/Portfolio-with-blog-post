@@ -1,19 +1,24 @@
 import type { Metadata } from "next";
-import { Geo } from "next/font/google"; // Using Geo as requested
+import { Geo } from "next/font/google";
+import dynamic from "next/dynamic";
 import "./globals.css";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { ThemeProvider } from "@/components/theme-provider";
 import { PageTransition } from "@/components/PageTransition";
 import { ScrollProgress } from "@/components/ScrollProgress";
-import { SpotlightBackground } from "@/components/SpotlightBackground";
 import { MobileNav } from "@/components/MobileNav";
 import { SmoothScrolling } from "@/components/SmoothScrolling";
 
+// Lazy-load Three.js particle canvas background
+const SpotlightBackground = dynamic(
+  () => import("@/components/SpotlightBackground").then((mod) => mod.SpotlightBackground)
+);
+
 const geo = Geo({
   subsets: ["latin"],
-  weight: ["400"], // Geo usually comes in limited weights, checking common
-  variable: "--font-geo", // Renamed from --font-inter
+  weight: ["400"],
+  variable: "--font-geo",
 });
 
 export const metadata: Metadata = {
@@ -74,6 +79,6 @@ export default async function RootLayout({
           )}
         </ThemeProvider>
       </body>
-    </html >
+    </html>
   );
 }

@@ -1,8 +1,25 @@
 "use client"
 
+import dynamic from "next/dynamic"
+import Image from "next/image"
 import { motion } from "framer-motion"
-import ProfileTransition from "./ProfileTransition"
 import type { SettingsMap } from "@/actions/settings"
+
+// Lazy-load the heavy WebGL / Three.js component
+const ProfileTransition = dynamic(() => import("./ProfileTransition"), {
+    ssr: false,
+    loading: () => (
+        <div className="relative aspect-square w-full h-full rounded-xl overflow-hidden bg-muted/20">
+            <Image
+                src="/profile.webp"
+                alt="Profile"
+                fill
+                sizes="(max-width: 768px) 100vw, 400px"
+                className="object-cover rounded-xl"
+            />
+        </div>
+    ),
+})
 
 interface AboutProps {
     settings?: Partial<SettingsMap>
@@ -24,8 +41,8 @@ export function About({ settings }: AboutProps) {
                         className="relative aspect-square overflow-hidden rounded-xl bg-muted max-w-sm mx-auto w-full"
                     >
                         <ProfileTransition
-                            image1="/profile.png"
-                            image2="/profile-hover.png"
+                            image1="/profile.webp"
+                            image2="/profile-hover.webp"
                             width={600}
                             height={600}
                         />
@@ -51,4 +68,3 @@ export function About({ settings }: AboutProps) {
         </section>
     )
 }
-

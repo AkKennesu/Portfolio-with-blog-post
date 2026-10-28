@@ -151,7 +151,8 @@ export default async function BlogPostPage({
                             src={post.cover_image}
                             alt={post.title}
                             fill
-                            unoptimized
+                            unoptimized={Boolean(post.cover_image?.startsWith("data:"))}
+                            sizes="(max-width: 1024px) 100vw, 896px"
                             priority
                             className="object-cover transition-transform duration-700 group-hover:scale-[1.02]"
                         />
@@ -213,6 +214,7 @@ export default async function BlogPostPage({
                                 const relReadTime = estimateReadingTime(related.content, related.excerpt)
                                 const relCategory = getPostCategory(related)
                                 const relDate = formatBlogDate(related.date)
+                                const isDataUri = Boolean(related.cover_image?.startsWith("data:"))
 
                                 return (
                                     <Link
@@ -227,7 +229,9 @@ export default async function BlogPostPage({
                                                         src={related.cover_image}
                                                         alt={related.title}
                                                         fill
-                                                        unoptimized
+                                                        unoptimized={isDataUri}
+                                                        sizes="(max-width: 768px) 100vw, 33vw"
+                                                        loading="lazy"
                                                         className="object-cover transition-transform duration-500 group-hover:scale-105"
                                                     />
                                                 </div>

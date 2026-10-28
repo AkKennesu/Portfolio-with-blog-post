@@ -62,6 +62,7 @@ export function BlogPreview({ posts }: { posts: Post[] }) {
                         const readTime = estimateReadingTime(post.content, post.excerpt)
                         const category = getPostCategory(post)
                         const formattedDate = formatBlogDate(post.date)
+                        const isDataUri = Boolean(post.cover_image?.startsWith("data:"))
 
                         return (
                             <motion.article
@@ -77,7 +78,9 @@ export function BlogPreview({ posts }: { posts: Post[] }) {
                                                 src={post.cover_image}
                                                 alt={post.title}
                                                 fill
-                                                unoptimized
+                                                unoptimized={isDataUri}
+                                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                                loading="lazy"
                                                 className="object-cover transition-transform duration-500 group-hover:scale-105"
                                             />
                                         </div>

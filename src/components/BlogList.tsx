@@ -152,7 +152,9 @@ export function BlogList({ posts }: BlogListProps) {
                                     src={featuredPost.cover_image}
                                     alt={featuredPost.title}
                                     fill
-                                    unoptimized
+                                    unoptimized={Boolean(featuredPost.cover_image?.startsWith("data:"))}
+                                    sizes="(max-width: 1024px) 100vw, 384px"
+                                    priority
                                     className="object-cover transition-transform duration-700 group-hover:scale-105"
                                 />
                             </div>
@@ -164,7 +166,9 @@ export function BlogList({ posts }: BlogListProps) {
                                     Featured Article
                                 </span>
                                 <span className="text-muted-foreground">•</span>
-                                <span className="text-muted-foreground">{getPostCategory(featuredPost)}</span>
+                                <span className="text-primary font-semibold">
+                                    {getPostCategory(featuredPost)}
+                                </span>
                             </div>
 
                             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-foreground group-hover:text-primary transition-colors">
@@ -226,6 +230,7 @@ export function BlogList({ posts }: BlogListProps) {
                                 const readTime = estimateReadingTime(post.content, post.excerpt)
                                 const category = getPostCategory(post)
                                 const formattedDate = formatBlogDate(post.date)
+                                const isDataUri = Boolean(post.cover_image?.startsWith("data:"))
 
                                 return (
                                     <motion.article
@@ -244,7 +249,9 @@ export function BlogList({ posts }: BlogListProps) {
                                                         src={post.cover_image}
                                                         alt={post.title}
                                                         fill
-                                                        unoptimized
+                                                        unoptimized={isDataUri}
+                                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                                        loading="lazy"
                                                         className="object-cover transition-transform duration-500 group-hover:scale-105"
                                                     />
                                                 </div>
