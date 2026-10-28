@@ -4,6 +4,7 @@ import { useState, useRef } from "react"
 import { X, Upload, Image as ImageIcon, Check, Loader2 } from "lucide-react"
 import Image from "next/image"
 import { compressImageFile } from "@/lib/image-utils"
+import { useDebounce } from "@/hooks/use-debounce"
 
 interface ArticleImageModalProps {
     isOpen: boolean
@@ -22,6 +23,9 @@ export function ArticleImageModal({ isOpen, onClose, onInsert }: ArticleImageMod
     const [isProcessing, setIsProcessing] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
+
+    // Debounce image URL preview to prevent firing image requests on every keystroke
+    const debouncedPreviewUrl = useDebounce(imageUrl, 350)
 
     if (!isOpen) return null
 
@@ -51,8 +55,8 @@ export function ArticleImageModal({ isOpen, onClose, onInsert }: ArticleImageMod
     const handleInsert = () => {
         if (!imageUrl.trim()) {
             setError("Please upload an image or provide a valid image URL.")
-            return
         }
+        if (!imageUrl.trim()) return
 
         const safeAlt = altText.trim() || caption.trim() || "Article illustration"
         const safeCaption = caption.trim()
@@ -189,7 +193,7 @@ export function ArticleImageModal({ isOpen, onClose, onInsert }: ArticleImageMod
                 </div>
 
                 {/* Live Preview If Image Loaded */}
-                {imageUrl && (
+                {(imageUrl.startsWith("data:") ? imageUrl : debouncedPreviewUrl) && (
                     <div className="mt-5 space-y-2">
                         <div className="flex items-center justify-between text-xs text-muted-foreground">
                             <span>Image Preview</span>
@@ -209,7 +213,7 @@ export function ArticleImageModal({ isOpen, onClose, onInsert }: ArticleImageMod
                                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
                             ) : (
                                 <Image
-                                    src={imageUrl}
+                                    src={imageUrl.startsWith("data:") ? imageUrl : debouncedPreviewUrl}
                                     alt={altText || "Preview"}
                                     fill
                                     unoptimized
