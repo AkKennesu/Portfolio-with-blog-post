@@ -55,12 +55,41 @@ CREATE TABLE IF NOT EXISTS site_settings (
 );
 
 -- ====================================================================
--- Performance Indexes
+-- Performance Indexes (Conforming to Supabase Postgres Best Practices)
 -- ====================================================================
+
+-- 1. Blog Posts: Covering index to serve list/archive directly from index leaf pages (Index-Only Scan)
+CREATE INDEX IF NOT EXISTS idx_blog_posts_date_covering 
+ON blog_posts (date DESC) 
+INCLUDE (slug, title, excerpt, cover_image);
+
+-- Standard sorting fallback index
 CREATE INDEX IF NOT EXISTS idx_blog_posts_date ON blog_posts (date DESC);
+
+-- Full-text search GIN index across title, excerpt, and content
+CREATE INDEX IF NOT EXISTS idx_blog_posts_fts 
+ON blog_posts USING gin (
+    to_tsvector('english', coalesce(title, '') || ' ' || coalesce(excerpt, '') || ' ' || coalesce(content, ''))
+);
+
+-- 2. Certificates: Composite sort index and title covering index
 CREATE INDEX IF NOT EXISTS idx_certificates_year_created ON certificates (year DESC, created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_messages_unread ON messages (created_at DESC) WHERE is_read = false;
+CREATE INDEX IF NOT EXISTS idx_certificates_year_title 
+ON certificates (year DESC, created_at DESC) 
+INCLUDE (title, subtitle);
+
+-- 3. Messages: Partial indexes for unread & important counts + covering index for timeline queries
 CREATE INDEX IF NOT EXISTS idx_messages_created ON messages (created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_messages_unread ON messages (created_at DESC) WHERE is_read = false;
+CREATE INDEX IF NOT EXISTS idx_messages_important ON messages (created_at DESC) WHERE is_important = true;
+CREATE INDEX IF NOT EXISTS idx_messages_created_covering 
+ON messages (created_at DESC) 
+INCLUDE (name, email, is_read, is_important);
+
+-- 4. Admin Users: Covering index for constant-time credential lookups
+CREATE INDEX IF NOT EXISTS idx_admin_users_username_covering 
+ON admin_users (username) 
+INCLUDE (password_hash);
 
 -- ====================================================================
 -- Row-Level Security (RLS)
@@ -113,4 +142,3 @@ GRANT SELECT ON TABLE certificates TO anon, authenticated;
 GRANT SELECT ON TABLE site_settings TO anon, authenticated;
 GRANT INSERT ON TABLE messages TO anon, authenticated;
 GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated;
-

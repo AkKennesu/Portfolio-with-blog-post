@@ -59,7 +59,8 @@ export const dbQuery = async (strings: TemplateStringsArray, ...values: any[]) =
  * - Native DATE and TIMESTAMPTZ data types
  * - JSONB for settings metadata
  * - Explicit UNIQUE constraints to support atomic UPSERTs
- * - Performance indexes for sorting and partial index for unread messages
+ * - Performance covering indexes (Index-Only Scans) and partial indexes
+ * - Full-Text Search GIN index on blog articles
  * - Row Level Security (RLS) enabled on all tables
  */
 export async function initDb() {
@@ -132,11 +133,47 @@ export async function initDb() {
       );
     `;
 
-    // 6. Performance Indexes
+    // 6. Performance Indexes (Covering, Partial, and GIN)
+    // Blog Posts: Covering index to serve list/archive directly from index leaf pages (Index-Only Scan)
+    await sqlClient`
+      CREATE INDEX IF NOT EXISTS idx_blog_posts_date_covering 
+      ON blog_posts (date DESC) 
+      INCLUDE (slug, title, excerpt, cover_image);
+    `;
     await sqlClient`CREATE INDEX IF NOT EXISTS idx_blog_posts_date ON blog_posts (date DESC);`;
+
+    // Blog Posts: Full-text search GIN index
+    await sqlClient`
+      CREATE INDEX IF NOT EXISTS idx_blog_posts_fts 
+      ON blog_posts USING gin (
+        to_tsvector('english', coalesce(title, '') || ' ' || coalesce(excerpt, '') || ' ' || coalesce(content, ''))
+      );
+    `;
+
+    // Certificates: Composite and Covering index
     await sqlClient`CREATE INDEX IF NOT EXISTS idx_certificates_year_created ON certificates (year DESC, created_at DESC);`;
-    await sqlClient`CREATE INDEX IF NOT EXISTS idx_messages_unread ON messages (created_at DESC) WHERE is_read = false;`;
+    await sqlClient`
+      CREATE INDEX IF NOT EXISTS idx_certificates_year_title 
+      ON certificates (year DESC, created_at DESC) 
+      INCLUDE (title, subtitle);
+    `;
+
+    // Messages: Partial indexes for unread & important counts + covering index
     await sqlClient`CREATE INDEX IF NOT EXISTS idx_messages_created ON messages (created_at DESC);`;
+    await sqlClient`CREATE INDEX IF NOT EXISTS idx_messages_unread ON messages (created_at DESC) WHERE is_read = false;`;
+    await sqlClient`CREATE INDEX IF NOT EXISTS idx_messages_important ON messages (created_at DESC) WHERE is_important = true;`;
+    await sqlClient`
+      CREATE INDEX IF NOT EXISTS idx_messages_created_covering 
+      ON messages (created_at DESC) 
+      INCLUDE (name, email, is_read, is_important);
+    `;
+
+    // Admin Users: Covering index for authentication
+    await sqlClient`
+      CREATE INDEX IF NOT EXISTS idx_admin_users_username_covering 
+      ON admin_users (username) 
+      INCLUDE (password_hash);
+    `;
 
     // 7. Enable Row Level Security (RLS)
     await sqlClient`ALTER TABLE blog_posts ENABLE ROW LEVEL SECURITY;`;
