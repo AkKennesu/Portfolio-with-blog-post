@@ -1,4 +1,5 @@
 import { CertificateRepository } from "@/repositories/certificate.repo";
+import { unstable_cache } from "next/cache";
 
 export type Certificate = {
   id?: number;
@@ -9,11 +10,26 @@ export type Certificate = {
   image: string;
 };
 
-export async function getCertificates(): Promise<Certificate[]> {
-  const items = await CertificateRepository.findAll();
-  return items as Certificate[];
-}
+export const getCertificates = unstable_cache(
+  async (): Promise<Certificate[]> => {
+    const items = await CertificateRepository.findAll();
+    return items as Certificate[];
+  },
+  ["certificates-list"],
+  {
+    tags: ["certificates", "admin-unified-data"],
+    revalidate: 300,
+  }
+);
 
-export async function getCertificate(id: number): Promise<Certificate | undefined> {
-  return await CertificateRepository.findById(id);
-}
+export const getCertificate = (id: number) =>
+  unstable_cache(
+    async (): Promise<Certificate | undefined> => {
+      return await CertificateRepository.findById(id);
+    },
+    [`certificate-${id}`],
+    {
+      tags: [`certificate-${id}`, "certificates", "admin-unified-data"],
+      revalidate: 300,
+    }
+  )();

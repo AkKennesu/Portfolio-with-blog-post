@@ -29,6 +29,7 @@ export async function createPost(formData: FormData) {
     revalidatePath("/blog");
     revalidatePath("/admin/dashboard");
     revalidatePath("/");
+    revalidateTag("blog-posts");
     revalidateTag("admin-unified-data");
     redirect("/admin/dashboard?tab=blog");
   }
@@ -58,9 +59,13 @@ export async function updatePost(id: number, formData: FormData) {
 
   if (success) {
     revalidatePath("/blog");
-    if (newSlug) revalidatePath(`/blog/${newSlug}`);
+    if (newSlug) {
+      revalidatePath(`/blog/${newSlug}`);
+      revalidateTag(`blog-post-${newSlug}`);
+    }
     revalidatePath("/admin/dashboard");
     revalidatePath("/");
+    revalidateTag("blog-posts");
     revalidateTag("admin-unified-data");
     redirect("/admin/dashboard?tab=blog");
   }
@@ -72,6 +77,7 @@ export async function deletePost(id: number): Promise<{ success: boolean; error?
     revalidatePath("/blog");
     revalidatePath("/admin/dashboard");
     revalidatePath("/");
+    revalidateTag("blog-posts");
     revalidateTag("admin-unified-data");
     return { success: true };
   } catch (error) {
@@ -93,6 +99,7 @@ export async function deletePosts(ids: number[]): Promise<{ success: boolean; er
     revalidatePath("/blog");
     revalidatePath("/admin/dashboard");
     revalidatePath("/");
+    revalidateTag("blog-posts");
     revalidateTag("admin-unified-data");
     return { success: true };
   } catch (error) {

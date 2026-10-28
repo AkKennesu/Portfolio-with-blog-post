@@ -74,6 +74,14 @@ export const getPosts = unstable_cache(
   }
 );
 
-export async function getPost(slug: string): Promise<Post | undefined> {
-  return await BlogRepository.findBySlug(slug);
-}
+export const getPost = (slug: string) =>
+  unstable_cache(
+    async (): Promise<Post | undefined> => {
+      return await BlogRepository.findBySlug(slug);
+    },
+    [`blog-post-${slug}`],
+    {
+      tags: [`blog-post-${slug}`, "blog-posts", "admin-unified-data"],
+      revalidate: 300,
+    }
+  )();
