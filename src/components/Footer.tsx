@@ -1,12 +1,12 @@
 "use client"
 
+import { memo, useMemo } from "react"
 import Link from "next/link"
 import {
-    Github, Twitter, Linkedin, Facebook, Instagram, Youtube,
-    Slack, Twitch, Globe, Link as LinkIcon, Mail, LucideIcon
+    Github, Linkedin, Mail, LucideIcon, Link as LinkIcon,
+    Twitter, Facebook, Instagram, Youtube, Slack, Twitch, Globe
 } from "lucide-react"
 import { SettingsMap } from "@/actions/settings"
-
 import { cn } from "@/lib/utils"
 
 const SOCIAL_PLATFORMS: Record<string, { icon: LucideIcon, color: string }> = {
@@ -23,65 +23,67 @@ const SOCIAL_PLATFORMS: Record<string, { icon: LucideIcon, color: string }> = {
     LinkIcon: { icon: LinkIcon, color: "var(--primary)" },
 }
 
-export function Footer({ settings }: { settings?: SettingsMap }) {
-    const customLinks: { label?: string; url: string; icon: string }[] = (() => {
+export const Footer = memo(function Footer({ settings }: { settings?: SettingsMap }) {
+    const allLinks = useMemo(() => {
+        let customLinks: { label?: string; url: string; icon: string }[] = []
         try {
-            if (!settings?.custom_social_links) return []
-            const parsed = JSON.parse(settings.custom_social_links)
-            return Array.isArray(parsed) ? parsed : []
+            if (settings?.custom_social_links) {
+                const parsed = JSON.parse(settings.custom_social_links)
+                if (Array.isArray(parsed)) customLinks = parsed
+            }
         } catch {
-            return []
+            customLinks = []
         }
-    })()
 
-    const customMap = new Map<string, { label?: string; url: string }>()
-    customLinks.forEach((item) => {
-        if (item.icon && item.url) {
-            customMap.set(item.icon.toLowerCase(), item)
-        }
-    })
-
-    const defaultSocials = [
-        {
-            label: customMap.get("github")?.label || "GitHub",
-            icon: Github,
-            url: customMap.get("github")?.url || "https://github.com/AkKennesu",
-            hoverClasses: "hover:bg-white/10 hover:border-white/30 hover:text-white hover:shadow-[0_0_12px_rgba(255,255,255,0.18)]",
-        },
-        {
-            label: customMap.get("linkedin")?.label || "LinkedIn",
-            icon: Linkedin,
-            url: customMap.get("linkedin")?.url || "https://linkedin.com",
-            hoverClasses: "hover:bg-[#0077b5]/10 hover:border-[#0077b5]/40 hover:text-[#0077b5] hover:shadow-[0_0_12px_rgba(0,119,181,0.25)]",
-        },
-        {
-            label: customMap.get("mail")?.label || "Email",
-            icon: Mail,
-            url: customMap.get("mail")
-                ? (customMap.get("mail")!.url.startsWith("mailto:")
-                    ? customMap.get("mail")!.url
-                    : `mailto:${customMap.get("mail")!.url}`)
-                : "mailto:akcatabay26@gmail.com",
-            hoverClasses: "hover:bg-[#ea4335]/10 hover:border-[#ea4335]/40 hover:text-[#ea4335] hover:shadow-[0_0_12px_rgba(234,67,53,0.25)]",
-        },
-    ]
-
-    // Include any additional custom links added via admin that aren't the standard three
-    const extraLinks = customLinks
-        .filter((l) => !["github", "linkedin", "mail"].includes(l.icon.toLowerCase()))
-        .map((link) => {
-            const config = SOCIAL_PLATFORMS[link.icon] || SOCIAL_PLATFORMS.LinkIcon
-            const isEmail = link.icon.toLowerCase() === "mail"
-            const url = isEmail && !link.url.startsWith("mailto:") ? `mailto:${link.url}` : link.url
-            return {
-                label: link.label || link.icon,
-                icon: config.icon,
-                url,
-                hoverClasses: "hover:bg-primary/10 hover:border-primary/40 hover:text-primary hover:shadow-[0_0_12px_rgba(59,130,246,0.2)]",
+        const customMap = new Map<string, { label?: string; url: string }>()
+        customLinks.forEach((item) => {
+            if (item.icon && item.url) {
+                customMap.set(item.icon.toLowerCase(), item)
             }
         })
 
-    const allLinks = [...defaultSocials, ...extraLinks]
+        const defaultSocials = [
+            {
+                label: customMap.get("github")?.label || "GitHub",
+                icon: Github,
+                url: customMap.get("github")?.url || "https://github.com/AkKennesu",
+                hoverClasses: "hover:bg-white/10 hover:border-white/30 hover:text-white hover:shadow-[0_0_12px_rgba(255,255,255,0.18)]",
+            },
+            {
+                label: customMap.get("linkedin")?.label || "LinkedIn",
+                icon: Linkedin,
+                url: customMap.get("linkedin")?.url || "https://linkedin.com",
+                hoverClasses: "hover:bg-[#0077b5]/10 hover:border-[#0077b5]/40 hover:text-[#0077b5] hover:shadow-[0_0_12px_rgba(0,119,181,0.25)]",
+            },
+            {
+                label: customMap.get("mail")?.label || "Email",
+                icon: Mail,
+                url: customMap.get("mail")
+                    ? (customMap.get("mail")!.url.startsWith("mailto:")
+                        ? customMap.get("mail")!.url
+                        : `mailto:${customMap.get("mail")!.url}`)
+                    : "mailto:akcatabay26@gmail.com",
+                hoverClasses: "hover:bg-[#ea4335]/10 hover:border-[#ea4335]/40 hover:text-[#ea4335] hover:shadow-[0_0_12px_rgba(234,67,53,0.25)]",
+            },
+        ]
+
+        // Include any additional custom links added via admin that aren't the standard three
+        const extraLinks = customLinks
+            .filter((l) => !["github", "linkedin", "mail"].includes(l.icon.toLowerCase()))
+            .map((link) => {
+                const config = SOCIAL_PLATFORMS[link.icon] || SOCIAL_PLATFORMS.LinkIcon
+                const isEmail = link.icon.toLowerCase() === "mail"
+                const url = isEmail && !link.url.startsWith("mailto:") ? `mailto:${link.url}` : link.url
+                return {
+                    label: link.label || link.icon,
+                    icon: config.icon,
+                    url,
+                    hoverClasses: "hover:bg-primary/10 hover:border-primary/40 hover:text-primary hover:shadow-[0_0_12px_rgba(59,130,246,0.2)]",
+                }
+            })
+
+        return [...defaultSocials, ...extraLinks]
+    }, [settings?.custom_social_links])
 
     return (
         <footer className="border-t border-white/5 bg-background pb-20 md:pb-0">
@@ -125,4 +127,4 @@ export function Footer({ settings }: { settings?: SettingsMap }) {
             </div>
         </footer>
     )
-}
+})

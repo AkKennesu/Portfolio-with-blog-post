@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useRef, useState, useEffect } from "react"
+import React, { useRef, useState, useEffect, memo } from "react"
 import { motion } from "framer-motion"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -8,31 +8,40 @@ import { useActiveSection } from "@/hooks/use-active-section"
 import { navItems } from "@/lib/data"
 import { cn, scrollToSection } from "@/lib/utils"
 
-export const MobileNav = () => {
+export const MobileNav = memo(function MobileNav() {
     const [isVisible, setIsVisible] = useState(true)
     const lastScrollY = useRef(0)
 
     useEffect(() => {
+        let rafId: number | null = null
+
         const handleScroll = () => {
-            const currentScrollY = window.scrollY
-            const diff = currentScrollY - lastScrollY.current
+            if (rafId !== null) return
+            rafId = requestAnimationFrame(() => {
+                rafId = null
+                const currentScrollY = window.scrollY
+                const diff = currentScrollY - lastScrollY.current
 
-            // Always show near top
-            if (currentScrollY < 60) {
-                setIsVisible(true)
-            } else if (diff > 8) {
-                // Scrolling down -> hide navbar
-                setIsVisible(false)
-            } else if (diff < -8) {
-                // Scrolling up -> show navbar
-                setIsVisible(true)
-            }
+                // Always show near top
+                if (currentScrollY < 60) {
+                    setIsVisible((prev) => (prev ? prev : true))
+                } else if (diff > 8) {
+                    // Scrolling down -> hide navbar
+                    setIsVisible((prev) => (!prev ? prev : false))
+                } else if (diff < -8) {
+                    // Scrolling up -> show navbar
+                    setIsVisible((prev) => (prev ? prev : true))
+                }
 
-            lastScrollY.current = currentScrollY
+                lastScrollY.current = currentScrollY
+            })
         }
 
         window.addEventListener("scroll", handleScroll, { passive: true })
-        return () => window.removeEventListener("scroll", handleScroll)
+        return () => {
+            window.removeEventListener("scroll", handleScroll)
+            if (rafId !== null) cancelAnimationFrame(rafId)
+        }
     }, [])
 
     return (
@@ -51,9 +60,9 @@ export const MobileNav = () => {
             <SlideTabs />
         </motion.div>
     )
-}
+})
 
-const SlideTabs = () => {
+const SlideTabs = memo(function SlideTabs() {
     const pathname = usePathname()
     const activeSection = useActiveSection()
     const isBlogRoute = pathname?.startsWith("/blog")
@@ -79,10 +88,19 @@ const SlideTabs = () => {
             // Calculate left position relative to scrollable container
             const relativeLeft = tabRect.left - containerRect.left + container.scrollLeft
 
-            setPosition({
-                left: relativeLeft,
-                width: tabRect.width,
-                opacity: 1,
+            setPosition((prev) => {
+                if (
+                    prev.left === relativeLeft &&
+                    prev.width === tabRect.width &&
+                    prev.opacity === 1
+                ) {
+                    return prev
+                }
+                return {
+                    left: relativeLeft,
+                    width: tabRect.width,
+                    opacity: 1,
+                }
             })
 
             // Scroll container so the active tab is visible if overflowed
@@ -113,9 +131,9 @@ const SlideTabs = () => {
             <Cursor position={position} />
         </ul>
     )
-}
+})
 
-const Tab = React.forwardRef<
+const Tab = memo(React.forwardRef<
     HTMLLIElement,
     { item: typeof navItems[0]; isActive: boolean }
 >(({ item, isActive }, ref) => {
@@ -138,11 +156,11 @@ const Tab = React.forwardRef<
             </Link>
         </li>
     )
-})
+}))
 
 Tab.displayName = "Tab"
 
-const Cursor = ({ position }: { position: { left: number; width: number; opacity: number } }) => {
+const Cursor = memo(function Cursor({ position }: { position: { left: number; width: number; opacity: number } }) {
     return (
         <motion.li
             animate={{
@@ -158,4 +176,4 @@ const Cursor = ({ position }: { position: { left: number; width: number; opacity
             className="absolute z-0 top-0.5 bottom-0.5 rounded-full bg-primary"
         />
     )
-}
+})

@@ -1,5 +1,6 @@
 "use client"
 
+import { memo } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn, scrollToSection } from "@/lib/utils"
@@ -9,7 +10,7 @@ import { useScroll } from "@/hooks/use-scroll"
 import { useActiveSection } from "@/hooks/use-active-section"
 import { SettingsMap } from "@/actions/settings"
 
-export function Navbar({ settings }: { settings?: SettingsMap }) {
+export const Navbar = memo(function Navbar({ settings }: { settings?: SettingsMap }) {
     const pathname = usePathname()
     const scrolled = useScroll()
     const activeSection = useActiveSection()
@@ -87,4 +88,4 @@ export function Navbar({ settings }: { settings?: SettingsMap }) {
             </div>
         </header>
     )
-}
+})

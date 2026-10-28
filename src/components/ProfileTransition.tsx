@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, memo } from "react"
 import * as THREE from "three"
 import gsap from "gsap"
 
@@ -70,13 +70,17 @@ interface ProfileTransitionProps {
     height?: number
 }
 
-export default function ProfileTransition({ image1, image2, width = 600, height = 600 }: ProfileTransitionProps) {
+const ProfileTransition = memo(function ProfileTransition({
+    image1,
+    image2,
+    width = 600,
+    height = 600
+}: ProfileTransitionProps) {
     const containerRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
         if (!containerRef.current) return
 
-        let frameId: number
         let renderer: THREE.WebGLRenderer
 
         try {
@@ -84,21 +88,25 @@ export default function ProfileTransition({ image1, image2, width = 600, height 
             const scene = new THREE.Scene()
 
             const camera = new THREE.PerspectiveCamera(80, width / height, 0.1, 5000)
-            const fov = 80;
+            const fov = 80
             const dist = height / (2 * Math.tan((fov * Math.PI) / 360))
             camera.position.z = dist
 
             renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true })
             renderer.setSize(width, height)
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2))
             renderer.domElement.style.width = '100%'
             renderer.domElement.style.height = '100%'
             containerRef.current.appendChild(renderer.domElement)
 
-            // Textures
+            const render = () => {
+                renderer.render(scene, camera)
+            }
+
+            // Textures - load with on-demand render callbacks
             const textureLoader = new THREE.TextureLoader()
-            const tex1 = textureLoader.load(image1)
-            const tex2 = textureLoader.load(image2)
+            const tex1 = textureLoader.load(image1, () => render())
+            const tex2 = textureLoader.load(image2, () => render())
             tex1.magFilter = THREE.LinearFilter
             tex2.magFilter = THREE.LinearFilter
 
@@ -227,9 +235,13 @@ export default function ProfileTransition({ image1, image2, width = 600, height 
             scene.add(mesh1)
             scene.add(mesh2)
 
-            // GSAP Timeline (Smooth & Fluid)
+            // Render initial state
+            render()
+
+            // GSAP Timeline (Smooth & Fluid) - on-demand render only during animation
             const tl = gsap.timeline({
                 paused: true,
+                onUpdate: render,
             })
 
             const totalDuration = 1.2 + 0.85 + 0.125 + 0.11
@@ -259,14 +271,7 @@ export default function ProfileTransition({ image1, image2, width = 600, height 
                 el.addEventListener('mouseleave', onLeave)
             }
 
-            const animate = () => {
-                frameId = requestAnimationFrame(animate)
-                renderer.render(scene, camera)
-            }
-            animate()
-
             return () => {
-                cancelAnimationFrame(frameId)
                 if (el) {
                     el.removeEventListener('mouseenter', onEnter)
                     el.removeEventListener('mouseleave', onLeave)
@@ -274,6 +279,8 @@ export default function ProfileTransition({ image1, image2, width = 600, height 
                 }
                 tl.kill()
                 renderer.dispose()
+                tex1.dispose()
+                tex2.dispose()
                 geo1.dispose()
                 geo2.dispose()
                 mat1.dispose()
@@ -289,4 +296,6 @@ export default function ProfileTransition({ image1, image2, width = 600, height 
     return (
         <div ref={containerRef} className="w-full h-full cursor-pointer relative" />
     )
-}
+})
+
+export default ProfileTransition

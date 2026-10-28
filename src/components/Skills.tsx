@@ -1,14 +1,13 @@
 "use client"
 
-import { motion, useInView, useScroll, useVelocity } from "framer-motion"
+import { memo, useState, useRef, useEffect, useCallback } from "react"
+import { motion, useInView, useScroll, useVelocity, type MotionValue } from "framer-motion"
 import {
     SiNextdotjs, SiJavascript, SiReact, SiTypescript,
     SiPostgresql, SiFirebase, SiFramer, SiGit,
     SiPython, SiSelenium, SiTailwindcss, SiUnity, SiFastapi
 } from "react-icons/si"
 import { FaJava } from "react-icons/fa"
-
-import { useState, useRef, useEffect } from "react"
 
 function SiPlaywright({ className, ...props }: React.ComponentProps<"svg">) {
     return (
@@ -49,6 +48,9 @@ const skills = [
 ]
 
 export function Skills() {
+    const { scrollY } = useScroll()
+    const scrollVelocity = useVelocity(scrollY)
+
     return (
         <section id="skills" className="py-24 sm:py-32 bg-muted/50">
             <div className="container mx-auto px-4 md:px-6">
@@ -62,7 +64,13 @@ export function Skills() {
                 {/* Grid Container */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 max-w-6xl mx-auto">
                     {skills.map((skill, index) => (
-                        <SkillCard key={skill.name} skill={skill} index={index} totalSkills={skills.length} />
+                        <SkillCard
+                            key={skill.name}
+                            skill={skill}
+                            index={index}
+                            totalSkills={skills.length}
+                            scrollVelocity={scrollVelocity}
+                        />
                     ))}
                 </div>
             </div>
@@ -70,15 +78,20 @@ export function Skills() {
     )
 }
 
-function SkillCard({ skill, index, totalSkills }: { skill: typeof skills[0], index: number, totalSkills: number }) {
+interface SkillCardProps {
+    skill: typeof skills[0]
+    index: number
+    totalSkills: number
+    scrollVelocity: MotionValue<number>
+}
+
+const SkillCard = memo(function SkillCard({ skill, index, totalSkills, scrollVelocity }: SkillCardProps) {
     const [isFlipped, setIsFlipped] = useState(false)
     const timeoutRef = useRef<NodeJS.Timeout | null>(null)
     const ref = useRef(null)
     const isInView = useInView(ref, { amount: 0.5 })
-    const { scrollY } = useScroll()
-    const scrollVelocity = useVelocity(scrollY)
 
-    const handleInteraction = () => {
+    const handleInteraction = useCallback(() => {
         setIsFlipped((prev) => {
             const newState = !prev
 
@@ -97,7 +110,7 @@ function SkillCard({ skill, index, totalSkills }: { skill: typeof skills[0], ind
 
             return newState
         })
-    }
+    }, [])
 
     useEffect(() => {
         if (isInView) {
@@ -168,4 +181,4 @@ function SkillCard({ skill, index, totalSkills }: { skill: typeof skills[0], ind
             </motion.div>
         </div>
     )
-}
+})

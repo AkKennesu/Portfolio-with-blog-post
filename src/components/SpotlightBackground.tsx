@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, memo } from "react"
 import { usePathname } from "next/navigation"
 import * as THREE from "three"
 
@@ -44,7 +44,7 @@ function createStarTexture(): THREE.Texture {
     return texture
 }
 
-export function SpotlightBackground() {
+export const SpotlightBackground = memo(function SpotlightBackground() {
     const pathname = usePathname()
     const containerRef = useRef<HTMLDivElement | null>(null)
 
@@ -414,5 +414,4 @@ export function SpotlightBackground() {
             className="fixed inset-0 -z-10 h-full w-full overflow-hidden bg-background pointer-events-none select-none"
         />
     )
-}
-
+})

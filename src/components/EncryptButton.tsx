@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useRef, useState, useEffect, useCallback, memo } from "react"
 import { Lock } from "lucide-react"
 import { motion, HTMLMotionProps } from "framer-motion"
 import { cn } from "@/lib/utils"
@@ -14,17 +14,33 @@ interface EncryptButtonProps extends HTMLMotionProps<"button"> {
     icon?: React.ElementType
 }
 
-export const EncryptButton = ({
+export const EncryptButton = memo(function EncryptButton({
     targetText,
     icon: Icon = Lock,
     className,
     ...props
-}: EncryptButtonProps) => {
+}: EncryptButtonProps) {
     const intervalRef = useRef<NodeJS.Timeout | null>(null)
     const [text, setText] = useState(targetText)
 
-    const scramble = () => {
+    useEffect(() => {
+        setText(targetText)
+    }, [targetText])
+
+    const stopScramble = useCallback(() => {
+        if (intervalRef.current) {
+            clearInterval(intervalRef.current)
+            intervalRef.current = null
+        }
+        setText(targetText)
+    }, [targetText])
+
+    const scramble = useCallback(() => {
         let pos = 0
+
+        if (intervalRef.current) {
+            clearInterval(intervalRef.current)
+        }
 
         intervalRef.current = setInterval(() => {
             const scrambled = targetText
@@ -48,14 +64,15 @@ export const EncryptButton = ({
                 stopScramble()
             }
         }, SHUFFLE_TIME)
-    }
+    }, [targetText, stopScramble])
 
-    const stopScramble = () => {
-        if (intervalRef.current) {
-            clearInterval(intervalRef.current)
+    useEffect(() => {
+        return () => {
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current)
+            }
         }
-        setText(targetText)
-    }
+    }, [])
 
     return (
         <motion.button
@@ -86,4 +103,4 @@ export const EncryptButton = ({
             />
         </motion.button>
     )
-}
+})
