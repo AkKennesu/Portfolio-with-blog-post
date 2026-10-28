@@ -8,6 +8,7 @@ import Link from "next/link"
 import Image from "next/image"
 
 import { compressImageFile } from "@/lib/image-utils"
+import { useDebounce } from "@/hooks/use-debounce"
 
 interface FormState {
     error?: string
@@ -17,6 +18,10 @@ export function CertificateForm({ certificate }: { certificate?: Certificate }) 
     const [preview, setPreview] = useState(certificate?.image || "")
     const [isUploading, setIsUploading] = useState(false)
     const fileInputRef = useRef<HTMLInputElement>(null)
+
+    // Debounce image URL input for preview to avoid network requests on every keystroke
+    const debouncedPreview = useDebounce(preview, 350)
+    const displayImage = preview.startsWith("data:") ? preview : debouncedPreview
 
     const [state, formAction, isPending] = useActionState(
         async (prevState: FormState | null, formData: FormData) => {
@@ -36,15 +41,15 @@ export function CertificateForm({ certificate }: { certificate?: Certificate }) 
         try {
             const compressed = await compressImageFile(file, 1200, 1200, 0.85)
             setPreview(compressed)
+            setIsUploading(false)
         } catch (err) {
             console.error("Failed to compress certificate image, falling back:", err)
             const reader = new FileReader()
             reader.onloadend = () => {
                 setPreview(reader.result as string)
+                setIsUploading(false)
             }
             reader.readAsDataURL(file)
-        } finally {
-            setIsUploading(false)
         }
     }
 
@@ -99,7 +104,10 @@ export function CertificateForm({ certificate }: { certificate?: Certificate }) 
                 </div>
 
                 <div className="grid gap-2">
-                    <label className="text-sm font-medium">Certificate Image</label>
+                    <span className="text-sm font-medium">Certificate Image</span>
+                    {/* Hidden input carrying the base64 or URL value for server action */}
+                    <input type="hidden" name="image" value={preview} />
+
                     <div className="grid gap-4 sm:grid-cols-2">
                         <div className="space-y-4">
                             <div className="grid gap-2">
@@ -121,16 +129,20 @@ export function CertificateForm({ certificate }: { certificate?: Certificate }) 
                             </div>
 
                             <div className="grid gap-2">
-                                <p className="text-xs text-muted-foreground">Option 2: Paste an image URL</p>
+                                <label htmlFor="image-url" className="text-xs text-muted-foreground">Option 2: Paste an image URL</label>
                                 <input
-                                    id="image"
-                                    name="image"
-                                    required
-                                    value={preview}
+                                    id="image-url"
+                                    type="url"
+                                    value={preview.startsWith("data:") ? "" : preview}
                                     onChange={(e) => setPreview(e.target.value)}
                                     placeholder="https://images.unsplash.com/..."
                                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                                 />
+                                {preview.startsWith("data:") && (
+                                    <p className="text-[11px] text-emerald-500 font-medium">
+                                        ✓ Custom image file attached from device
+                                    </p>
+                                )}
                             </div>
                         </div>
 
@@ -139,19 +151,21 @@ export function CertificateForm({ certificate }: { certificate?: Certificate }) 
                             <div className="relative aspect-video rounded-xl border border-border bg-muted overflow-hidden flex items-center justify-center">
                                 {isUploading ? (
                                     <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                                ) : preview ? (
+                                ) : displayImage ? (
                                     <>
                                         <Image
-                                            src={preview}
+                                            src={displayImage}
                                             alt="Certificate preview"
                                             fill
                                             unoptimized
+                                            sizes="(max-width: 768px) 100vw, 400px"
                                             className="object-contain"
                                         />
                                         <button
                                             type="button"
                                             onClick={clearImage}
-                                            className="absolute top-2 right-2 p-1 rounded-full bg-background/80 hover:bg-background text-foreground shadow-sm transition-colors"
+                                            aria-label="Remove certificate photo"
+                                            className="absolute top-2 right-2 p-1 rounded-full bg-background/80 hover:bg-background text-foreground shadow-sm transition-colors cursor-pointer"
                                         >
                                             <X className="h-4 w-4" />
                                         </button>
@@ -172,7 +186,7 @@ export function CertificateForm({ certificate }: { certificate?: Certificate }) 
                         required
                         defaultValue={certificate?.description}
                         placeholder="Demonstrated expertise in designing distributed systems..."
-                        className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                        className="flex min-h-30 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                     />
                 </div>
             </div>
@@ -200,3 +214,4 @@ export function CertificateForm({ certificate }: { certificate?: Certificate }) 
         </form>
     )
 }
+

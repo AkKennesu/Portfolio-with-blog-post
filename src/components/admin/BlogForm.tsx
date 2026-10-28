@@ -20,6 +20,7 @@ import Image from "next/image"
 import { compressImageFile } from "@/lib/image-utils"
 import { ArticleImageModal } from "./ArticleImageModal"
 import { sanitizeContent } from "@/lib/sanitize"
+import { useDebounce } from "@/hooks/use-debounce"
 
 interface FormState {
     error?: string
@@ -31,8 +32,13 @@ export function BlogForm({ post }: { post?: Post }) {
     const [isUploadingCover, setIsUploadingCover] = useState(false)
     const coverInputRef = useRef<HTMLInputElement>(null)
 
+    // Debounce cover image preview for remote URLs
+    const debouncedCoverImage = useDebounce(coverImage, 350)
+    const displayCover = coverImage.startsWith("data:") ? coverImage : debouncedCoverImage
+
     // Content and in-article photo insertion state
     const [content, setContent] = useState(post?.content || "")
+    const debouncedContent = useDebounce(content, 300)
     const [isImageModalOpen, setIsImageModalOpen] = useState(false)
     const [activeTab, setActiveTab] = useState<"edit" | "preview">("edit")
     const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -226,10 +232,10 @@ export function BlogForm({ post }: { post?: Post }) {
                                             <Loader2 className="h-7 w-7 animate-spin text-primary" />
                                             <span className="text-xs text-muted-foreground">Optimizing cover...</span>
                                         </div>
-                                    ) : coverImage ? (
+                                    ) : displayCover ? (
                                         <>
                                             <Image
-                                                src={coverImage}
+                                                src={displayCover}
                                                 alt="Article cover preview"
                                                 fill
                                                 unoptimized
@@ -380,7 +386,7 @@ export function BlogForm({ post }: { post?: Post }) {
                             />
                         ) : (
                             <div className="rounded-2xl border border-border bg-card/90 backdrop-blur-md p-6 sm:p-10 min-h-[380px] shadow-inner overflow-y-auto">
-                                {content.trim() ? (
+                                {debouncedContent.trim() ? (
                                     <article
                                         className="prose prose-invert prose-lg max-w-none 
                                             prose-headings:font-bold prose-headings:tracking-tight prose-headings:text-foreground
@@ -391,7 +397,7 @@ export function BlogForm({ post }: { post?: Post }) {
                                             prose-img:rounded-xl prose-img:border prose-img:border-border/80 prose-img:shadow-md prose-img:max-h-[500px] prose-img:object-cover
                                             prose-figure:my-6
                                             prose-figcaption:text-xs prose-figcaption:text-center prose-figcaption:text-muted-foreground prose-figcaption:mt-2"
-                                        dangerouslySetInnerHTML={{ __html: sanitizeContent(content) }}
+                                        dangerouslySetInnerHTML={{ __html: sanitizeContent(debouncedContent) }}
                                     />
                                 ) : (
                                     <div className="py-16 text-center text-muted-foreground text-sm">

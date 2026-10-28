@@ -8,6 +8,7 @@ import { ArrowRight, Calendar, Clock, Search, X, Sparkles, BookOpen } from "luci
 import { Post } from "@/lib/blog"
 import { estimateReadingTime, formatBlogDate, getPostCategory } from "@/lib/blog-utils"
 import { cn } from "@/lib/utils"
+import { useDebounce } from "@/hooks/use-debounce"
 
 interface BlogListProps {
     posts: Post[]
@@ -16,6 +17,9 @@ interface BlogListProps {
 export function BlogList({ posts }: BlogListProps) {
     const [searchQuery, setSearchQuery] = useState("")
     const [selectedCategory, setSelectedCategory] = useState("All")
+
+    // Debounce search query by 250ms to prevent filtering on every single keystroke
+    const debouncedSearchQuery = useDebounce(searchQuery, 250)
 
     // Extract unique categories dynamically
     const categories = useMemo(() => {
@@ -26,9 +30,9 @@ export function BlogList({ posts }: BlogListProps) {
         return ["All", ...Array.from(catSet)]
     }, [posts])
 
-    // Filter posts by search query and category
+    // Filter posts by debounced search query and category
     const filteredPosts = useMemo(() => {
-        const q = searchQuery.toLowerCase().trim()
+        const q = debouncedSearchQuery.toLowerCase().trim()
         return posts.filter((post) => {
             const matchesCategory =
                 selectedCategory === "All" || getPostCategory(post) === selectedCategory
@@ -41,10 +45,10 @@ export function BlogList({ posts }: BlogListProps) {
 
             return matchesCategory && matchesQuery
         })
-    }, [posts, selectedCategory, searchQuery])
+    }, [posts, selectedCategory, debouncedSearchQuery])
 
     // Featured post is the first post when no search query and category is "All"
-    const hasFeatured = selectedCategory === "All" && !searchQuery.trim() && filteredPosts.length > 0
+    const hasFeatured = selectedCategory === "All" && !debouncedSearchQuery.trim() && filteredPosts.length > 0
     const featuredPost = hasFeatured ? filteredPosts[0] : null
     const regularPosts = hasFeatured ? filteredPosts.slice(1) : filteredPosts
 
