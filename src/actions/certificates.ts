@@ -27,6 +27,7 @@ export async function createCertificate(formData: FormData) {
   if (success) {
     revalidatePath("/");
     revalidatePath("/admin/dashboard");
+    revalidateTag("certificates");
     revalidateTag("admin-unified-data");
     redirect("/admin/dashboard?tab=certificates");
   }
@@ -54,6 +55,8 @@ export async function updateCertificate(id: number, formData: FormData) {
   if (success) {
     revalidatePath("/");
     revalidatePath("/admin/dashboard");
+    revalidateTag("certificates");
+    revalidateTag(`certificate-${id}`);
     revalidateTag("admin-unified-data");
     redirect("/admin/dashboard?tab=certificates");
   }
@@ -64,6 +67,8 @@ export async function deleteCertificate(id: number): Promise<{ success: boolean;
     await CertificateService.deleteCertificate(id);
     revalidatePath("/");
     revalidatePath("/admin/dashboard");
+    revalidateTag("certificates");
+    revalidateTag(`certificate-${id}`);
     revalidateTag("admin-unified-data");
     return { success: true };
   } catch (error) {
@@ -84,6 +89,7 @@ export async function deleteCertificates(ids: number[]): Promise<{ success: bool
 
     revalidatePath("/");
     revalidatePath("/admin/dashboard");
+    revalidateTag("certificates");
     revalidateTag("admin-unified-data");
     return { success: true };
   } catch (error) {
