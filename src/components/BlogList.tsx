@@ -8,18 +8,27 @@ import { ArrowRight, Calendar, Clock, Search, X, Sparkles, BookOpen } from "luci
 import { Post } from "@/lib/blog"
 import { estimateReadingTime, formatBlogDate, getPostCategory } from "@/lib/blog-utils"
 import { cn } from "@/lib/utils"
-import { useDebounce } from "@/hooks/use-debounce"
+import { useDebouncedCallback } from "@/hooks/use-debounce"
 
 interface BlogListProps {
     posts: Post[]
 }
 
 export function BlogList({ posts }: BlogListProps) {
-    const [searchQuery, setSearchQuery] = useState("")
+    const [displaySearch, setDisplaySearch] = useState("")
+    const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("")
     const [selectedCategory, setSelectedCategory] = useState("All")
 
-    // Debounce search query by 250ms to prevent filtering on every single keystroke
-    const debouncedSearchQuery = useDebounce(searchQuery, 250)
+    // Debounce search query updates by 250ms to prevent heavy filtering on every keystroke
+    const debouncedSetQuery = useDebouncedCallback((val: string) => {
+        setDebouncedSearchQuery(val)
+    }, 250)
+
+    const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        const val = e.target.value
+        setDisplaySearch(val)
+        debouncedSetQuery(val)
+    }, [debouncedSetQuery])
 
     // Extract unique categories dynamically
     const categories = useMemo(() => {
@@ -53,11 +62,13 @@ export function BlogList({ posts }: BlogListProps) {
     const regularPosts = hasFeatured ? filteredPosts.slice(1) : filteredPosts
 
     const handleClearSearch = useCallback(() => {
-        setSearchQuery("")
+        setDisplaySearch("")
+        setDebouncedSearchQuery("")
     }, [])
 
     const handleResetFilters = useCallback(() => {
-        setSearchQuery("")
+        setDisplaySearch("")
+        setDebouncedSearchQuery("")
         setSelectedCategory("All")
     }, [])
 
@@ -91,12 +102,12 @@ export function BlogList({ posts }: BlogListProps) {
                     <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <input
                         type="text"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
+                        value={displaySearch}
+                        onChange={handleSearchChange}
                         placeholder="Search articles by title or keyword..."
                         className="w-full bg-card/60 backdrop-blur-md border border-border/80 rounded-xl pl-10 pr-9 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/80 focus:ring-2 focus:ring-primary/20 transition-all"
                     />
-                    {searchQuery && (
+                    {displaySearch && (
                         <button
                             type="button"
                             onClick={handleClearSearch}
@@ -113,9 +124,9 @@ export function BlogList({ posts }: BlogListProps) {
             <div className="flex items-center justify-between text-xs text-muted-foreground">
                 <span>
                     Showing {filteredPosts.length} {filteredPosts.length === 1 ? "article" : "articles"}
-                    {searchQuery && ` matching "${searchQuery}"`}
+                    {debouncedSearchQuery && ` matching "${debouncedSearchQuery}"`}
                 </span>
-                {(searchQuery || selectedCategory !== "All") && (
+                {(debouncedSearchQuery || selectedCategory !== "All") && (
                     <button
                         type="button"
                         onClick={handleResetFilters}

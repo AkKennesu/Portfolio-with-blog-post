@@ -20,7 +20,7 @@ import Image from "next/image"
 import { compressImageFile } from "@/lib/image-utils"
 import { ArticleImageModal } from "./ArticleImageModal"
 import { sanitizeContent } from "@/lib/sanitize"
-import { useDebounce } from "@/hooks/use-debounce"
+import { useDebouncedCallback } from "@/hooks/use-debounce"
 
 interface FormState {
     error?: string
@@ -29,19 +29,33 @@ interface FormState {
 export function BlogForm({ post }: { post?: Post }) {
     // Cover photo state
     const [coverImage, setCoverImage] = useState(post?.cover_image || "")
+    const [coverUrlInput, setCoverUrlInput] = useState(
+        post?.cover_image && !post.cover_image.startsWith("data:") ? post.cover_image : ""
+    )
     const [isUploadingCover, setIsUploadingCover] = useState(false)
     const coverInputRef = useRef<HTMLInputElement>(null)
 
-    // Debounce cover image preview for remote URLs
-    const debouncedCoverImage = useDebounce(coverImage, 350)
-    const displayCover = coverImage.startsWith("data:") ? coverImage : debouncedCoverImage
+    // Debounce cover image URL input handler for preview to avoid remote image loads on every keystroke
+    const debouncedSetCoverImage = useDebouncedCallback((val: string) => {
+        setCoverImage(val)
+    }, 350)
+
+    const handleCoverUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const val = e.target.value
+        setCoverUrlInput(val)
+        debouncedSetCoverImage(val)
+    }
 
     // Content and in-article photo insertion state
-    const [content, setContent] = useState(post?.content || "")
-    const debouncedContent = useDebounce(content, 300)
+    const [previewContent, setPreviewContent] = useState(post?.content || "")
     const [isImageModalOpen, setIsImageModalOpen] = useState(false)
     const [activeTab, setActiveTab] = useState<"edit" | "preview">("edit")
     const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+    // Debounce content updates for live sanitization & preview
+    const debouncedSetPreviewContent = useDebouncedCallback((val: string) => {
+        setPreviewContent(val)
+    }, 300)
 
     // Form submission action
     const [state, formAction, isPending] = useActionState(
@@ -63,6 +77,7 @@ export function BlogForm({ post }: { post?: Post }) {
         try {
             const compressed = await compressImageFile(file, 1920, 1080, 0.85)
             setCoverImage(compressed)
+            setCoverUrlInput("")
         } catch (err) {
             console.error("Failed to compress cover image:", err)
         } finally {
@@ -72,23 +87,22 @@ export function BlogForm({ post }: { post?: Post }) {
 
     const clearCoverImage = () => {
         setCoverImage("")
+        setCoverUrlInput("")
         if (coverInputRef.current) coverInputRef.current.value = ""
     }
 
     // Insert formatted text or photo snippet at textarea cursor position
     const insertSnippetAtCursor = (snippet: string) => {
         const textarea = textareaRef.current
-        if (!textarea) {
-            setContent((prev) => prev + snippet)
-            return
-        }
+        if (!textarea) return
 
         const start = textarea.selectionStart
         const end = textarea.selectionEnd
-        const prevContent = content
+        const prevContent = textarea.value
         const nextContent = prevContent.substring(0, start) + snippet + prevContent.substring(end)
 
-        setContent(nextContent)
+        textarea.value = nextContent
+        debouncedSetPreviewContent(nextContent)
 
         // Reset cursor position after insert
         setTimeout(() => {
@@ -210,8 +224,8 @@ export function BlogForm({ post }: { post?: Post }) {
                                     <p className="text-xs font-medium text-foreground">Option 2: Paste image URL</p>
                                     <input
                                         type="url"
-                                        value={coverImage.startsWith("data:") ? "" : coverImage}
-                                        onChange={(e) => setCoverImage(e.target.value)}
+                                        value={coverUrlInput}
+                                        onChange={handleCoverUrlChange}
                                         placeholder="https://images.unsplash.com/..."
                                         className="flex h-9 w-full rounded-lg border border-input bg-background px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                                     />
@@ -232,10 +246,10 @@ export function BlogForm({ post }: { post?: Post }) {
                                             <Loader2 className="h-7 w-7 animate-spin text-primary" />
                                             <span className="text-xs text-muted-foreground">Optimizing cover...</span>
                                         </div>
-                                    ) : displayCover ? (
+                                    ) : coverImage ? (
                                         <>
                                             <Image
-                                                src={displayCover}
+                                                src={coverImage}
                                                 alt="Article cover preview"
                                                 fill
                                                 unoptimized
@@ -285,7 +299,12 @@ export function BlogForm({ post }: { post?: Post }) {
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={() => setActiveTab("preview")}
+                                    onClick={() => {
+                                        if (textareaRef.current) {
+                                            setPreviewContent(textareaRef.current.value)
+                                        }
+                                        setActiveTab("preview")
+                                    }}
                                     className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
                                         activeTab === "preview"
                                             ? "bg-background text-foreground shadow-xs"
@@ -379,14 +398,14 @@ export function BlogForm({ post }: { post?: Post }) {
                                 id="content"
                                 name="content"
                                 required
-                                value={content}
-                                onChange={(e) => setContent(e.target.value)}
+                                defaultValue={post?.content || ""}
+                                onChange={(e) => debouncedSetPreviewContent(e.target.value)}
                                 placeholder="<p>Write your article here or use the toolbar above to add photos, headings, and code...</p>"
                                 className="flex min-h-[380px] w-full rounded-2xl border border-input bg-background p-4 text-sm font-mono text-foreground ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent transition-all leading-relaxed"
                             />
                         ) : (
                             <div className="rounded-2xl border border-border bg-card/90 backdrop-blur-md p-6 sm:p-10 min-h-[380px] shadow-inner overflow-y-auto">
-                                {debouncedContent.trim() ? (
+                                {previewContent.trim() ? (
                                     <article
                                         className="prose prose-invert prose-lg max-w-none 
                                             prose-headings:font-bold prose-headings:tracking-tight prose-headings:text-foreground
@@ -397,7 +416,7 @@ export function BlogForm({ post }: { post?: Post }) {
                                             prose-img:rounded-xl prose-img:border prose-img:border-border/80 prose-img:shadow-md prose-img:max-h-[500px] prose-img:object-cover
                                             prose-figure:my-6
                                             prose-figcaption:text-xs prose-figcaption:text-center prose-figcaption:text-muted-foreground prose-figcaption:mt-2"
-                                        dangerouslySetInnerHTML={{ __html: sanitizeContent(debouncedContent) }}
+                                        dangerouslySetInnerHTML={{ __html: sanitizeContent(previewContent) }}
                                     />
                                 ) : (
                                     <div className="py-16 text-center text-muted-foreground text-sm">

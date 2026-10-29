@@ -32,10 +32,10 @@ export function useDebounce<T>(value: T, delay: number = 300): T {
  * @param callback The function to debounce
  * @param delay Milliseconds to delay execution (default: 300ms)
  */
-export function useDebouncedCallback<T extends (...args: unknown[]) => void>(
-    callback: T,
+export function useDebouncedCallback<Args extends unknown[], R = void>(
+    callback: (...args: Args) => R,
     delay: number = 300
-): (...args: Parameters<T>) => void {
+): (...args: Args) => void {
     const callbackRef = useRef(callback)
     callbackRef.current = callback
 
@@ -48,7 +48,7 @@ export function useDebouncedCallback<T extends (...args: unknown[]) => void>(
     }, [])
 
     return useCallback(
-        (...args: Parameters<T>) => {
+        (...args: Args) => {
             if (timerRef.current) {
                 clearTimeout(timerRef.current)
             }
