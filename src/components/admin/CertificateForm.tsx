@@ -8,7 +8,7 @@ import Link from "next/link"
 import Image from "next/image"
 
 import { compressImageFile } from "@/lib/image-utils"
-import { useDebounce } from "@/hooks/use-debounce"
+import { useDebouncedCallback } from "@/hooks/use-debounce"
 
 interface FormState {
     error?: string
@@ -16,12 +16,22 @@ interface FormState {
 
 export function CertificateForm({ certificate }: { certificate?: Certificate }) {
     const [preview, setPreview] = useState(certificate?.image || "")
+    const [urlInput, setUrlInput] = useState(
+        certificate?.image && !certificate.image.startsWith("data:") ? certificate.image : ""
+    )
     const [isUploading, setIsUploading] = useState(false)
     const fileInputRef = useRef<HTMLInputElement>(null)
 
-    // Debounce image URL input for preview to avoid network requests on every keystroke
-    const debouncedPreview = useDebounce(preview, 350)
-    const displayImage = preview.startsWith("data:") ? preview : debouncedPreview
+    // Debounce image URL input handler for preview to avoid network requests on every keystroke
+    const debouncedSetPreview = useDebouncedCallback((val: string) => {
+        setPreview(val)
+    }, 350)
+
+    const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const val = e.target.value
+        setUrlInput(val)
+        debouncedSetPreview(val)
+    }
 
     const [state, formAction, isPending] = useActionState(
         async (prevState: FormState | null, formData: FormData) => {
@@ -41,12 +51,14 @@ export function CertificateForm({ certificate }: { certificate?: Certificate }) 
         try {
             const compressed = await compressImageFile(file, 1200, 1200, 0.85)
             setPreview(compressed)
+            setUrlInput("")
             setIsUploading(false)
         } catch (err) {
             console.error("Failed to compress certificate image, falling back:", err)
             const reader = new FileReader()
             reader.onloadend = () => {
                 setPreview(reader.result as string)
+                setUrlInput("")
                 setIsUploading(false)
             }
             reader.readAsDataURL(file)
@@ -55,6 +67,7 @@ export function CertificateForm({ certificate }: { certificate?: Certificate }) 
 
     const clearImage = () => {
         setPreview("")
+        setUrlInput("")
         if (fileInputRef.current) fileInputRef.current.value = ""
     }
 
@@ -133,8 +146,8 @@ export function CertificateForm({ certificate }: { certificate?: Certificate }) 
                                 <input
                                     id="image-url"
                                     type="url"
-                                    value={preview.startsWith("data:") ? "" : preview}
-                                    onChange={(e) => setPreview(e.target.value)}
+                                    value={urlInput}
+                                    onChange={handleUrlChange}
                                     placeholder="https://images.unsplash.com/..."
                                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                                 />
@@ -151,10 +164,10 @@ export function CertificateForm({ certificate }: { certificate?: Certificate }) 
                             <div className="relative aspect-video rounded-xl border border-border bg-muted overflow-hidden flex items-center justify-center">
                                 {isUploading ? (
                                     <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                                ) : displayImage ? (
+                                ) : preview ? (
                                     <>
                                         <Image
-                                            src={displayImage}
+                                            src={preview}
                                             alt="Certificate preview"
                                             fill
                                             unoptimized

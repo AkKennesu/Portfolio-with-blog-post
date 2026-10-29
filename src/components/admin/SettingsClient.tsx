@@ -2,6 +2,7 @@
 
 import { useState, useTransition, useRef } from "react";
 import { updateSettings, type SettingsMap } from "@/actions/settings";
+import { useDebouncedCallback } from "@/hooks/use-debounce";
 import {
   Save,
   Palette,
@@ -47,10 +48,86 @@ const ICON_OPTIONS = [
   { label: "Generic Link", value: "LinkIcon", icon: LinkIcon },
 ];
 
+function SocialLinkItem({
+  link,
+  onUpdate,
+  onRemove,
+}: {
+  link: CustomLink;
+  onUpdate: (updates: Partial<CustomLink>) => void;
+  onRemove: () => void;
+}) {
+  const [label, setLabel] = useState(link.label);
+  const [url, setUrl] = useState(link.url);
+
+  // Debounce link updating by 300ms so typing in one link does not re-render all others
+  const debouncedUpdate = useDebouncedCallback((updates: Partial<CustomLink>) => {
+    onUpdate(updates);
+  }, 300);
+
+  const handleLabelChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setLabel(val);
+    debouncedUpdate({ label: val });
+  };
+
+  const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setUrl(val);
+    debouncedUpdate({ url: val });
+  };
+
+  return (
+    <div className="flex flex-col sm:flex-row items-end gap-3 p-4 border border-border rounded-xl bg-muted/20">
+      <div className="grid gap-2 flex-1 w-full">
+        <label className="text-xs font-medium uppercase text-muted-foreground">Label</label>
+        <input
+          value={label}
+          onChange={handleLabelChange}
+          placeholder="e.g. My GitHub"
+          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+        />
+      </div>
+      <div className="grid gap-2 flex-1 w-full">
+        <label className="text-xs font-medium uppercase text-muted-foreground">URL</label>
+        <input
+          value={url}
+          onChange={handleUrlChange}
+          placeholder="https://..."
+          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+        />
+      </div>
+      <div className="grid gap-2 w-full sm:w-40">
+        <label className="text-xs font-medium uppercase text-muted-foreground">Platform</label>
+        <select
+          value={link.icon}
+          onChange={(e) => onUpdate({ icon: e.target.value })}
+          className="flex h-10 w-full rounded-md border border-input bg-background px-2 py-2 text-sm"
+        >
+          {ICON_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+      </div>
+      <button
+        type="button"
+        onClick={onRemove}
+        className="h-10 w-10 flex items-center justify-center rounded-md border border-destructive/20 text-destructive hover:bg-destructive/10 transition-colors"
+        title="Remove Link"
+      >
+        <Trash2 className="h-4 w-4" />
+      </button>
+    </div>
+  );
+}
+
 export default function SettingsClient({ initialSettings }: { initialSettings: SettingsMap }) {
   const [settings] = useState<SettingsMap>(initialSettings);
   const [isPending, startTransition] = useTransition();
   const [localColor, setLocalColor] = useState(initialSettings.primary_color || "#3b82f6");
+  const [hexInput, setHexInput] = useState(initialSettings.primary_color || "#3b82f6");
   const [status, setStatus] = useState<{ type: "success" | "error"; msg: string } | null>(null);
   const [customLinks, setCustomLinks] = useState<CustomLink[]>(() => {
     try {
@@ -60,9 +137,43 @@ export default function SettingsClient({ initialSettings }: { initialSettings: S
     }
   });
   const [cvBase64, setCvBase64] = useState<string>(initialSettings.cv_file || "");
+  const [cvUrlInput, setCvUrlInput] = useState<string>(
+    initialSettings.cv_file && !initialSettings.cv_file.startsWith("data:") ? initialSettings.cv_file : ""
+  );
   const [cvName, setCvName] = useState<string>("");
   const [isUploading, setIsUploading] = useState(false);
   const cvInputRef = useRef<HTMLInputElement>(null);
+
+  // Debounced brand color handler to avoid palette recalculations on each typed character
+  const debouncedSetColor = useDebouncedCallback((val: string) => {
+    if (/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(val)) {
+      setLocalColor(val);
+    }
+  }, 300);
+
+  const handleHexChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setHexInput(val);
+    debouncedSetColor(val);
+  };
+
+  const handleColorPickerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setLocalColor(val);
+    setHexInput(val);
+  };
+
+  // Debounced CV URL handler
+  const debouncedSetCv = useDebouncedCallback((val: string) => {
+    setCvBase64(val);
+    setCvName(val ? "Direct Document URL" : "");
+  }, 350);
+
+  const handleCvUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setCvUrlInput(val);
+    debouncedSetCv(val);
+  };
 
   const handleAddLink = () => {
     setCustomLinks([...customLinks, { label: "", url: "", icon: "LinkIcon" }]);
@@ -73,9 +184,11 @@ export default function SettingsClient({ initialSettings }: { initialSettings: S
   };
 
   const handleUpdateLink = (index: number, updates: Partial<CustomLink>) => {
-    const newLinks = [...customLinks];
-    newLinks[index] = { ...newLinks[index], ...updates };
-    setCustomLinks(newLinks);
+    setCustomLinks((prev) => {
+      const newLinks = [...prev];
+      newLinks[index] = { ...newLinks[index], ...updates };
+      return newLinks;
+    });
   };
 
   const handleCvUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -87,6 +200,7 @@ export default function SettingsClient({ initialSettings }: { initialSettings: S
     const reader = new FileReader();
     reader.onloadend = () => {
       setCvBase64(reader.result as string);
+      setCvUrlInput("");
       setIsUploading(false);
     };
     reader.readAsDataURL(file);
@@ -136,15 +250,15 @@ export default function SettingsClient({ initialSettings }: { initialSettings: S
                       type="color"
                       name="primary_color"
                       value={localColor}
-                      onChange={(e) => setLocalColor(e.target.value)}
+                      onChange={handleColorPickerChange}
                       className="h-14 w-14 rounded-lg cursor-pointer border-2 border-border p-1 bg-background"
                     />
                   </div>
                   <div className="flex-1 space-y-1">
                     <input
                       type="text"
-                      value={localColor}
-                      onChange={(e) => setLocalColor(e.target.value)}
+                      value={hexInput}
+                      onChange={handleHexChange}
                       placeholder="#HEXCODE"
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm uppercase font-mono"
                     />
@@ -218,51 +332,12 @@ export default function SettingsClient({ initialSettings }: { initialSettings: S
             ) : (
               <div className="grid gap-4">
                 {customLinks.map((link, index) => (
-                  <div
+                  <SocialLinkItem
                     key={index}
-                    className="flex flex-col sm:flex-row items-end gap-3 p-4 border border-border rounded-xl bg-muted/20"
-                  >
-                    <div className="grid gap-2 flex-1 w-full">
-                      <label className="text-xs font-medium uppercase text-muted-foreground">Label</label>
-                      <input
-                        value={link.label}
-                        onChange={(e) => handleUpdateLink(index, { label: e.target.value })}
-                        placeholder="e.g. My GitHub"
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                      />
-                    </div>
-                    <div className="grid gap-2 flex-1 w-full">
-                      <label className="text-xs font-medium uppercase text-muted-foreground">URL</label>
-                      <input
-                        value={link.url}
-                        onChange={(e) => handleUpdateLink(index, { url: e.target.value })}
-                        placeholder="https://..."
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                      />
-                    </div>
-                    <div className="grid gap-2 w-full sm:w-40">
-                      <label className="text-xs font-medium uppercase text-muted-foreground">Platform</label>
-                      <select
-                        value={link.icon}
-                        onChange={(e) => handleUpdateLink(index, { icon: e.target.value })}
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-2 py-2 text-sm"
-                      >
-                        {ICON_OPTIONS.map((opt) => (
-                          <option key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveLink(index)}
-                      className="h-10 w-10 flex items-center justify-center rounded-md border border-destructive/20 text-destructive hover:bg-destructive/10 transition-colors"
-                      title="Remove Link"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
+                    link={link}
+                    onUpdate={(updates) => handleUpdateLink(index, updates)}
+                    onRemove={() => handleRemoveLink(index)}
+                  />
                 ))}
               </div>
             )}
@@ -292,11 +367,8 @@ export default function SettingsClient({ initialSettings }: { initialSettings: S
                 </label>
                 <input
                   type="text"
-                  value={cvBase64.startsWith("data:") ? "" : cvBase64}
-                  onChange={(e) => {
-                    setCvBase64(e.target.value);
-                    setCvName(e.target.value ? "Direct Document URL" : "");
-                  }}
+                  value={cvUrlInput}
+                  onChange={handleCvUrlChange}
                   placeholder="https://.../cv.pdf or /cv.pdf"
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                 />
@@ -344,7 +416,11 @@ export default function SettingsClient({ initialSettings }: { initialSettings: S
                       </div>
                       <button
                         type="button"
-                        onClick={() => setCvBase64("")}
+                        onClick={() => {
+                          setCvBase64("");
+                          setCvName("");
+                          setCvUrlInput("");
+                        }}
                         className="text-[10px] font-bold text-destructive hover:underline uppercase"
                       >
                         Clear Selection

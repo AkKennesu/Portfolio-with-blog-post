@@ -4,7 +4,7 @@ import { useState, useRef } from "react"
 import { X, Upload, Image as ImageIcon, Check, Loader2 } from "lucide-react"
 import Image from "next/image"
 import { compressImageFile } from "@/lib/image-utils"
-import { useDebounce } from "@/hooks/use-debounce"
+import { useDebouncedCallback } from "@/hooks/use-debounce"
 
 interface ArticleImageModalProps {
     isOpen: boolean
@@ -17,6 +17,7 @@ type AlignmentOption = "full" | "center" | "float-left" | "float-right"
 export function ArticleImageModal({ isOpen, onClose, onInsert }: ArticleImageModalProps) {
     const [sourceMode, setSourceMode] = useState<"upload" | "url">("upload")
     const [imageUrl, setImageUrl] = useState("")
+    const [urlInput, setUrlInput] = useState("")
     const [caption, setCaption] = useState("")
     const [altText, setAltText] = useState("")
     const [alignment, setAlignment] = useState<AlignmentOption>("full")
@@ -24,8 +25,16 @@ export function ArticleImageModal({ isOpen, onClose, onInsert }: ArticleImageMod
     const [error, setError] = useState<string | null>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
 
-    // Debounce image URL preview to prevent firing image requests on every keystroke
-    const debouncedPreviewUrl = useDebounce(imageUrl, 350)
+    // Debounce image URL input handler to prevent firing preview requests on every keystroke
+    const debouncedSetImageUrl = useDebouncedCallback((val: string) => {
+        setImageUrl(val)
+    }, 350)
+
+    const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const val = e.target.value
+        setUrlInput(val)
+        debouncedSetImageUrl(val)
+    }
 
     if (!isOpen) return null
 
@@ -39,6 +48,7 @@ export function ArticleImageModal({ isOpen, onClose, onInsert }: ArticleImageMod
         try {
             const compressed = await compressImageFile(file, 1600, 1600, 0.85)
             setImageUrl(compressed)
+            setUrlInput("")
             if (!altText) {
                 // Auto fill alt text with clean file name
                 const cleanName = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ")
@@ -93,6 +103,7 @@ export function ArticleImageModal({ isOpen, onClose, onInsert }: ArticleImageMod
 
     const resetAndClose = () => {
         setImageUrl("")
+        setUrlInput("")
         setCaption("")
         setAltText("")
         setError(null)
@@ -183,8 +194,8 @@ export function ArticleImageModal({ isOpen, onClose, onInsert }: ArticleImageMod
                             <label className="text-xs font-medium text-foreground">Image URL</label>
                             <input
                                 type="url"
-                                value={imageUrl}
-                                onChange={(e) => setImageUrl(e.target.value)}
+                                value={urlInput}
+                                onChange={handleUrlChange}
                                 placeholder="https://images.unsplash.com/..."
                                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                             />
@@ -193,7 +204,7 @@ export function ArticleImageModal({ isOpen, onClose, onInsert }: ArticleImageMod
                 </div>
 
                 {/* Live Preview If Image Loaded */}
-                {(imageUrl.startsWith("data:") ? imageUrl : debouncedPreviewUrl) && (
+                {imageUrl && (
                     <div className="mt-5 space-y-2">
                         <div className="flex items-center justify-between text-xs text-muted-foreground">
                             <span>Image Preview</span>
@@ -201,6 +212,7 @@ export function ArticleImageModal({ isOpen, onClose, onInsert }: ArticleImageMod
                                 type="button"
                                 onClick={() => {
                                     setImageUrl("")
+                                    setUrlInput("")
                                     if (fileInputRef.current) fileInputRef.current.value = ""
                                 }}
                                 className="text-destructive hover:underline cursor-pointer"
@@ -213,7 +225,7 @@ export function ArticleImageModal({ isOpen, onClose, onInsert }: ArticleImageMod
                                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
                             ) : (
                                 <Image
-                                    src={imageUrl.startsWith("data:") ? imageUrl : debouncedPreviewUrl}
+                                    src={imageUrl}
                                     alt={altText || "Preview"}
                                     fill
                                     unoptimized
