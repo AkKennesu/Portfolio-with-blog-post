@@ -26,7 +26,6 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 // Rename to dbQuery to provide backwards-compatible { rows } result with automatic recovery
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const dbQuery = async (strings: TemplateStringsArray, ...values: any[]) => {
   if (!connectionString) {
     throw new Error("POSTGRES_URL environment variable is not defined");

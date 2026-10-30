@@ -27,8 +27,8 @@ export async function createCertificate(formData: FormData) {
   if (success) {
     revalidatePath("/");
     revalidatePath("/admin/dashboard");
-    revalidateTag("certificates");
-    revalidateTag("admin-unified-data");
+    revalidateTag("certificates", "max");
+    revalidateTag("admin-unified-data", "max");
     redirect("/admin/dashboard?tab=certificates");
   }
 }
@@ -55,9 +55,9 @@ export async function updateCertificate(id: number, formData: FormData) {
   if (success) {
     revalidatePath("/");
     revalidatePath("/admin/dashboard");
-    revalidateTag("certificates");
-    revalidateTag(`certificate-${id}`);
-    revalidateTag("admin-unified-data");
+    revalidateTag("certificates", "max");
+    revalidateTag(`certificate-${id}`, "max");
+    revalidateTag("admin-unified-data", "max");
     redirect("/admin/dashboard?tab=certificates");
   }
 }
@@ -67,9 +67,9 @@ export async function deleteCertificate(id: number): Promise<{ success: boolean;
     await CertificateService.deleteCertificate(id);
     revalidatePath("/");
     revalidatePath("/admin/dashboard");
-    revalidateTag("certificates");
-    revalidateTag(`certificate-${id}`);
-    revalidateTag("admin-unified-data");
+    revalidateTag("certificates", "max");
+    revalidateTag(`certificate-${id}`, "max");
+    revalidateTag("admin-unified-data", "max");
     return { success: true };
   } catch (error) {
     console.error("Failed to delete certificate:", error);
@@ -89,8 +89,8 @@ export async function deleteCertificates(ids: number[]): Promise<{ success: bool
 
     revalidatePath("/");
     revalidatePath("/admin/dashboard");
-    revalidateTag("certificates");
-    revalidateTag("admin-unified-data");
+    revalidateTag("certificates", "max");
+    revalidateTag("admin-unified-data", "max");
     return { success: true };
   } catch (error) {
     console.error("Failed to batch delete certificates:", error);

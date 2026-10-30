@@ -78,18 +78,14 @@ export default function UnifiedAdminConsole({
   const [isCreatingPost, setIsCreatingPost] = useState(false);
   const [isCreatingCert, setIsCreatingCert] = useState(false);
 
-  // Sync tab with URL query parameter on client mount / popstate without reloading
+  // Sync tab on browser back/forward (popstate) navigation
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const tabParam = params.get("tab") as AdminTab | null;
-    if (tabParam && ["overview", "settings", "blog", "certificates", "messages"].includes(tabParam)) {
-      setActiveTab(tabParam);
-    }
-
     const handlePopState = () => {
       const p = new URLSearchParams(window.location.search);
       const t = (p.get("tab") as AdminTab) || "overview";
-      setActiveTab(t);
+      if (["overview", "settings", "blog", "certificates", "messages"].includes(t)) {
+        setActiveTab(t);
+      }
     };
 
     window.addEventListener("popstate", handlePopState);
