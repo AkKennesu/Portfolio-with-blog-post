@@ -1,5 +1,9 @@
 import { cache } from "react";
 import { dbQuery, sqlClient } from "@/lib/db";
+import { defaultEducationItems, type EducationItem } from "@/lib/data";
+
+export type { EducationItem };
+export { defaultEducationItems };
 
 export type SettingsMap = {
   about_me_1: string;
@@ -7,6 +11,14 @@ export type SettingsMap = {
   primary_color: string;
   custom_social_links: string;
   cv_file: string;
+  hero_title: string;
+  hero_highlight: string;
+  hero_description: string;
+  logo_text: string;
+  logo_image: string;
+  education_title: string;
+  education_subtitle: string;
+  education_items: string;
 };
 
 export const defaultSettings: SettingsMap = {
@@ -17,6 +29,15 @@ export const defaultSettings: SettingsMap = {
   primary_color: "#3b82f6",
   custom_social_links: "[]",
   cv_file: "",
+  hero_title: "Building digital products that",
+  hero_highlight: "matter.",
+  hero_description:
+    "QA Engineer & Full-Stack Developer specializing in automated testing, reliable cloud architectures, and interface craftsmanship.",
+  logo_text: "AK",
+  logo_image: "",
+  education_title: "Education Attainment",
+  education_subtitle: "My academic journey and professional milestones.",
+  education_items: JSON.stringify(defaultEducationItems),
 };
 
 export class SettingsRepository {

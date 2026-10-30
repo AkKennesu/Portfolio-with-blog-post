@@ -23,6 +23,24 @@ export const settingsInputSchema = z.object({
     }, "custom_social_links must be valid JSON array")
     .optional(),
   cv_file: z.string().optional(),
+  hero_title: z.string().trim().optional(),
+  hero_highlight: z.string().trim().optional(),
+  hero_description: z.string().trim().optional(),
+  logo_text: z.string().trim().optional(),
+  logo_image: z.string().optional(),
+  education_title: z.string().trim().optional(),
+  education_subtitle: z.string().trim().optional(),
+  education_items: z
+    .string()
+    .refine((val) => {
+      try {
+        const parsed = JSON.parse(val);
+        return Array.isArray(parsed);
+      } catch {
+        return false;
+      }
+    }, "education_items must be valid JSON array")
+    .optional(),
 });
 
 export type SettingsInput = z.infer<typeof settingsInputSchema>;

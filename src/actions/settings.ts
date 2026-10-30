@@ -26,6 +26,14 @@ export async function updateSettings(formData: FormData): Promise<{ success: boo
       "primary_color",
       "custom_social_links",
       "cv_file",
+      "hero_title",
+      "hero_highlight",
+      "hero_description",
+      "logo_text",
+      "logo_image",
+      "education_title",
+      "education_subtitle",
+      "education_items",
     ];
 
     const entries: Record<string, string> = {};
@@ -42,6 +50,7 @@ export async function updateSettings(formData: FormData): Promise<{ success: boo
     revalidatePath("/admin/settings");
     revalidatePath("/admin/dashboard");
     revalidateTag("admin-unified-data", "max");
+    revalidateTag("settings", "max");
     return { success: true };
   } catch (error) {
     console.error("Failed to update settings:", error);

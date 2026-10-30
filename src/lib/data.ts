@@ -103,7 +103,14 @@ export const blogPosts = [
     }
 ];
 
-export const educationItems = [
+export type EducationItem = {
+    year: string;
+    title: string;
+    subtitle: string;
+    description: string;
+};
+
+export const educationItems: EducationItem[] = [
     {
         year: "2019 - 2023",
         title: "Bachelor of Science in Information Technology",
@@ -117,6 +124,8 @@ export const educationItems = [
         description: "Focused on computer programming and basic hardware servicing. Awarded Best in Programming for two consecutive years."
     }
 ];
+
+export const defaultEducationItems = educationItems;
 
 export const achievementItems = [
     {
