@@ -10,19 +10,21 @@ export default async function AdminDashboardPage({
 }: {
   searchParams?: Promise<{ tab?: string }>;
 }) {
-  const session = await getSession();
+  // Execute session check, searchParams resolution, and unified data fetch concurrently
+  const [session, resolvedParams, data] = await Promise.all([
+    getSession(),
+    searchParams ? searchParams : Promise.resolve({} as { tab?: string }),
+    AdminRepository.getUnifiedData(),
+  ]);
+
   if (!session) {
     redirect("/admin/login");
   }
 
-  const resolvedParams = searchParams ? await searchParams : {};
   const validTabs: AdminTab[] = ["overview", "settings", "blog", "certificates", "messages"];
   const currentTab: AdminTab = validTabs.includes(resolvedParams.tab as AdminTab)
     ? (resolvedParams.tab as AdminTab)
     : "overview";
-
-  // Single ultra-fast round-trip for entire admin dashboard suite
-  const data = await AdminRepository.getUnifiedData();
 
   return <UnifiedAdminConsole initialData={data} initialTab={currentTab} />;
 }

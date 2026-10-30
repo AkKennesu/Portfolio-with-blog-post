@@ -69,16 +69,18 @@ export async function migrateData(): Promise<void> {
   const { posts } = await import("@/lib/blog");
   const { achievementItems } = await import("@/lib/data");
 
-  // Migrate Blog Posts atomically
-  for (const post of posts) {
-    await dbQuery`
-      INSERT INTO blog_posts (slug, title, excerpt, date, content, cover_image)
-      VALUES (${post.slug}, ${post.title}, ${post.excerpt}, ${post.date}::date, ${post.content}, ${post.cover_image ?? null})
-      ON CONFLICT (slug) DO UPDATE
-      SET cover_image = EXCLUDED.cover_image
-      WHERE blog_posts.cover_image IS NULL
-    `;
-  }
+  // Migrate Blog Posts concurrently in parallel (eliminates sequential N+1 network waterfall)
+  await Promise.all(
+    posts.map((post) =>
+      dbQuery`
+        INSERT INTO blog_posts (slug, title, excerpt, date, content, cover_image)
+        VALUES (${post.slug}, ${post.title}, ${post.excerpt}, ${post.date}::date, ${post.content}, ${post.cover_image ?? null})
+        ON CONFLICT (slug) DO UPDATE
+        SET cover_image = EXCLUDED.cover_image
+        WHERE blog_posts.cover_image IS NULL
+      `
+    )
+  );
 
   // Migrate Certificates using batch repository method
   await CertificateRepository.syncStaticCertificates(achievementItems);

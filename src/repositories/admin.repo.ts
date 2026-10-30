@@ -107,7 +107,7 @@ export class AdminRepository {
         blogCount: Number(data.blog_count || allPosts.length),
         certCount: Number(data.cert_count || allCerts.length),
         messageCount: Number(data.message_count || allMessages.length),
-        unreadMessageCount: Number(data.unread_count || allMessages.filter((m) => !m.is_read).length),
+        unreadMessageCount: data.unread_count != null ? Number(data.unread_count) : allMessages.filter((m) => !m.is_read).length,
         recentMessages: allMessages.slice(0, 4).map((m) => ({
           id: m.id,
           name: m.name,
