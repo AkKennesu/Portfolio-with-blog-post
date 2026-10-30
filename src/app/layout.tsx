@@ -17,8 +17,24 @@ const geo = Geo({
 });
 
 export const metadata: Metadata = {
-  title: "Arn Kenneth | Portfolio",
-  description: "Personal portfolio and blog.",
+  title: {
+    default: "Arn Kenneth | QA Engineer & Full-Stack Developer",
+    template: "%s | Arn Kenneth",
+  },
+  description: "QA Engineer & Full-Stack Developer specializing in automated testing, reliable cloud architectures, and interface craftsmanship.",
+  authors: [{ name: "Arn Kenneth" }],
+  keywords: ["QA Engineer", "Full-Stack Developer", "Automated Testing", "Playwright", "Selenium", "Next.js", "TypeScript"],
+  openGraph: {
+    title: "Arn Kenneth | QA Engineer & Full-Stack Developer",
+    description: "QA Engineer & Full-Stack Developer specializing in automated testing, reliable cloud architectures, and interface craftsmanship.",
+    type: "website",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Arn Kenneth | QA Engineer & Full-Stack Developer",
+    description: "QA Engineer & Full-Stack Developer specializing in automated testing, reliable cloud architectures, and interface craftsmanship.",
+  },
 };
 
 import { getSettings } from "@/actions/settings";

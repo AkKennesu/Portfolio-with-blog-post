@@ -82,7 +82,7 @@ export default function CertListClient({ certs }: { certs: Certificate[] }) {
                                     </button>
                                 </td>
                                 <td className="px-6 py-4">
-                                    <div className="h-10 w-10 min-w-[40px] rounded-md bg-muted overflow-hidden border border-border relative">
+                                    <div className="h-10 w-10 min-w-10 rounded-md bg-muted overflow-hidden border border-border relative">
                                         {Boolean(cert.image && cert.image.trim()) ? (
                                             <Image src={cert.image} alt={cert.title} fill unoptimized className="object-cover" />
                                         ) : (

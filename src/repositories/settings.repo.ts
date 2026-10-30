@@ -11,9 +11,9 @@ export type SettingsMap = {
 
 export const defaultSettings: SettingsMap = {
   about_me_1:
-    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam non neque est. Sed vel pretium massa. Donec eget nibh a magna feugiat rutrum.",
+    "Detail-oriented and adaptable QA Engineer and Information Technology graduate with hands-on experience in automated testing, software development, and quality assurance.",
   about_me_2:
-    "Vivamus at dui mollis, finibus justo vitae, accumsan nullam. Phasellus vestibulum hendrerit ex, ut ullamcorper arcu finibus a. Fusce et nibh quist.",
+    "Strong background in full-stack development, enabling deep technical troubleshooting and effective collaboration with cross-functional teams to deliver high-quality, scalable software solutions.",
   primary_color: "#3b82f6",
   custom_social_links: "[]",
   cv_file: "",

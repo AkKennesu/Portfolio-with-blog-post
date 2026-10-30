@@ -1,9 +1,8 @@
 "use client"
 
-import { memo, useCallback } from "react"
+import { memo } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { useRouter } from "next/navigation"
 import { motion, type Variants } from "framer-motion"
 import { ArrowRight, Calendar, Clock } from "lucide-react"
 import { EncryptButton } from "@/components/EncryptButton"
@@ -33,12 +32,6 @@ const cardVariants: Variants = {
 }
 
 export const BlogPreview = memo(function BlogPreview({ posts }: { posts: Post[] }) {
-    const router = useRouter()
-
-    const handleViewAll = useCallback(() => {
-        router.push("/blog")
-    }, [router])
-
     return (
         <section id="blog" className="py-24 sm:py-32 relative overflow-hidden">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -74,9 +67,9 @@ export const BlogPreview = memo(function BlogPreview({ posts }: { posts: Post[] 
                 {/* Bottom CTA to Blog Archive */}
                 <div className="flex justify-center">
                     <EncryptButton
+                        href="/blog"
                         targetText="View All Articles"
                         icon={ArrowRight}
-                        onClick={handleViewAll}
                         className="w-full sm:w-auto"
                     />
                 </div>

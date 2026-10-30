@@ -147,9 +147,20 @@ const SkillCard = memo(function SkillCard({ skill, index, totalSkills, scrollVel
     return (
         <div
             ref={ref}
-            className="h-20 w-full cursor-pointer"
+            role="button"
+            tabIndex={0}
+            aria-label={`Skill: ${skill.name}`}
+            aria-expanded={isFlipped}
+            className="h-20 w-full cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-xl"
             style={{ perspective: "1000px" }}
             onMouseEnter={handleInteraction}
+            onClick={handleInteraction}
+            onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault()
+                    handleInteraction()
+                }
+            }}
         >
             <motion.div
                 initial={false}

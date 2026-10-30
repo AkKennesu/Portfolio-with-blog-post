@@ -1,11 +1,18 @@
 "use client"
 
 import { motion } from "framer-motion"
-import Link from "next/link"
 import { ArrowRight, Mail, Download } from "lucide-react"
 import { EncryptButton } from "@/components/EncryptButton"
+import { scrollToSection } from "@/lib/utils"
+import type { SettingsMap } from "@/actions/settings"
 
-export function Hero() {
+interface HeroProps {
+    settings?: SettingsMap
+}
+
+export function Hero({ settings }: HeroProps) {
+    const cvHref = settings?.cv_file || "/cv.pdf"
+
     return (
         <div
             id="hero"
@@ -17,30 +24,31 @@ export function Hero() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5 }}
                 >
-                    <div className="text-4xl font-normal tracking-tight sm:text-6xl md:text-7xl">
+                    <h1 className="text-4xl font-normal tracking-tight sm:text-6xl md:text-7xl">
                         <span>Building digital products that </span>
                         <span className="text-primary block sm:inline font-bold">matter.</span>
-                    </div>
+                    </h1>
                     <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam.
+                        QA Engineer &amp; Full-Stack Developer specializing in automated testing, reliable cloud architectures, and interface craftsmanship.
                     </p>
                     <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-                        <Link href="#projects" tabIndex={-1}>
-                            <EncryptButton
-                                targetText="View Work"
-                                icon={ArrowRight}
-                                className="h-12 border-primary/50 text-primary hover:text-primary hover:border-primary bg-primary/10"
-                            />
-                        </Link>
-                        <Link href="#contact" tabIndex={-1}>
-                            <EncryptButton
-                                targetText="Contact Me"
-                                icon={Mail}
-                                className="h-12 border-input hover:border-primary"
-                            />
-                        </Link>
+                        <EncryptButton
+                            href="#projects"
+                            onClick={(e) => scrollToSection(e, "/#projects")}
+                            targetText="View Work"
+                            icon={ArrowRight}
+                            className="h-12 border-primary/50 text-primary hover:text-primary hover:border-primary bg-primary/10"
+                        />
+                        <EncryptButton
+                            href="#contact"
+                            onClick={(e) => scrollToSection(e, "/#contact")}
+                            targetText="Contact Me"
+                            icon={Mail}
+                            className="h-12 border-input hover:border-primary"
+                        />
                         <a
-                            href="/cv.pdf"
+                            href={cvHref}
+                            download="Arn_Kenneth_CV"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="group relative flex h-12 items-center justify-center overflow-hidden rounded-lg border border-primary/20 bg-background px-8 font-mono font-medium uppercase text-foreground transition-colors hover:text-primary hover:border-primary md:hidden"

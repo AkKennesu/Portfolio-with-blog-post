@@ -24,7 +24,7 @@ export const Projects = memo(function Projects() {
             <div className="container mx-auto px-4 md:px-6">
                 <div className="flex flex-col items-center text-center mb-12">
                     <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl mb-4">Featured Projects</h2>
-                    <p className="text-muted-foreground max-w-[800px]">
+                    <p className="text-muted-foreground max-w-200">
                         A selection of projects that showcase my improved skills and passion for building.
                     </p>
                 </div>
@@ -94,20 +94,20 @@ const ProjectCard = memo(function ProjectCard({ project, index }: { project: typ
                 </div>
             </div>
             <div className="card__img" style={{ backgroundImage: `url(${project.image})`, visibility: 'visible' }}></div>
-            <Link href={project.links.demo} className="card_link">
+            <Link href={project.links.demo} className="card_link" aria-label={`View ${project.title} live preview`}>
                 <div className="card__img--hover" style={{ backgroundImage: `url(${project.image})` }}></div>
             </Link>
             <div className="card__info">
                 <span className="card__category">{project.tags[0]}</span>
                 <h3 className="card__title">{project.title}</h3>
                 <span className="card__by">
-                    Built with <a href={project.links.github} className="card__author" title="author">{project.tags.slice(1, 3).join(", ")}</a>
+                    Built with <span className="card__author">{project.tags.slice(1, 3).join(", ")}</span>
                 </span>
                 <div className="mt-5 flex items-center justify-end gap-5">
-                    <Link href={project.links.demo} className="card__author text-sm underline underline-offset-4 uppercase tracking-wider hover:brightness-125 hover:text-white transition-colors">
+                    <Link href={project.links.demo} target={project.links.demo.startsWith("http") ? "_blank" : undefined} rel={project.links.demo.startsWith("http") ? "noopener noreferrer" : undefined} onClick={(e) => { if (project.links.demo === "#") e.preventDefault() }} className="card__author text-sm underline underline-offset-4 uppercase tracking-wider hover:brightness-125 hover:text-white transition-colors">
                         Demo
                     </Link>
-                    <Link href={project.links.github} className="card__author text-sm underline underline-offset-4 uppercase tracking-wider hover:brightness-125 hover:text-white transition-colors">
+                    <Link href={project.links.github} target={project.links.github.startsWith("http") ? "_blank" : undefined} rel={project.links.github.startsWith("http") ? "noopener noreferrer" : undefined} onClick={(e) => { if (project.links.github === "#") e.preventDefault() }} className="card__author text-sm underline underline-offset-4 uppercase tracking-wider hover:brightness-125 hover:text-white transition-colors">
                         Source Code
                     </Link>
                 </div>

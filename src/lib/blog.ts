@@ -74,14 +74,13 @@ export const getPosts = unstable_cache(
   }
 );
 
-export const getPost = (slug: string) =>
-  unstable_cache(
-    async (): Promise<Post | undefined> => {
-      return await BlogRepository.findBySlug(slug);
-    },
-    [`blog-post-${slug}`],
-    {
-      tags: [`blog-post-${slug}`, "blog-posts", "admin-unified-data"],
-      revalidate: 300,
-    }
-  )();
+export const getPost = unstable_cache(
+  async (slug: string): Promise<Post | undefined> => {
+    return await BlogRepository.findBySlug(slug);
+  },
+  ["blog-post-by-slug"],
+  {
+    tags: ["blog-posts", "admin-unified-data"],
+    revalidate: 300,
+  }
+);

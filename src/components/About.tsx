@@ -26,8 +26,8 @@ interface AboutProps {
 }
 
 export function About({ settings }: AboutProps) {
-    const aboutMe1 = settings?.about_me_1 || "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam non neque est. Sed vel pretium massa."
-    const aboutMe2 = settings?.about_me_2 || "Vivamus at dui mollis, finibus justo vitae, accumsan nullam. Phasellus vestibulum hendrerit ex, ut ullamcorper arcu finibus a."
+    const aboutMe1 = settings?.about_me_1 || "Detail-oriented and adaptable QA Engineer and Information Technology graduate with hands-on experience in automated testing, software development, and quality assurance."
+    const aboutMe2 = settings?.about_me_2 || "Strong background in full-stack development, enabling deep technical troubleshooting and effective collaboration with cross-functional teams to deliver high-quality, scalable software solutions."
 
     return (
         <section id="about" className="py-24 sm:py-32 overflow-hidden">

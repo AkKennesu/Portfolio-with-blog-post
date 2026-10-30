@@ -27,6 +27,9 @@ const nextConfig: NextConfig = {
     ],
   },
   async headers() {
+    if (process.env.NODE_ENV !== "production") {
+      return [];
+    }
     return [
       {
         // Immutable long-term caching for hashed JS chunks, CSS, and webpack manifests

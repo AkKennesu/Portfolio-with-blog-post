@@ -20,7 +20,7 @@ export default async function Home() {
 
   return (
     <div className="flex flex-col">
-      <Hero />
+      <Hero settings={settings} />
       <About settings={settings} />
       <Skills />
       <Projects />

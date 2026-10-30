@@ -9,15 +9,20 @@ const CYCLES_PER_LETTER = 2
 const SHUFFLE_TIME = 50
 const CHARS = "!@#$%^&*():{};|,.<>/?0123456789"
 
-interface EncryptButtonProps extends HTMLMotionProps<"button"> {
+interface EncryptButtonProps extends Omit<HTMLMotionProps<"button">, "onClick"> {
+    onClick?: (e: React.MouseEvent<HTMLElement>) => void
     targetText: string
     icon?: React.ElementType
+    href?: string
+    as?: "button" | "a" | "span"
 }
 
 export const EncryptButton = memo(function EncryptButton({
     targetText,
     icon: Icon = Lock,
     className,
+    href,
+    as,
     ...props
 }: EncryptButtonProps) {
     const intervalRef = useRef<NodeJS.Timeout | null>(null)
@@ -74,16 +79,20 @@ export const EncryptButton = memo(function EncryptButton({
         }
     }, [])
 
+    const Component = (href ? motion.a : as === "span" ? motion.span : motion.button) as React.ElementType
+    const extraProps = href ? { href } : {}
+
     return (
-        <motion.button
+        <Component
             whileHover={{ scale: 1.025 }}
             whileTap={{ scale: 0.975 }}
             onMouseEnter={scramble}
             onMouseLeave={stopScramble}
             className={cn(
-                "group relative flex items-center justify-center overflow-hidden rounded-lg border border-primary/20 bg-background px-6 sm:px-8 py-3 font-mono font-medium uppercase text-foreground transition-colors hover:text-primary hover:border-primary max-w-full",
+                "group relative flex items-center justify-center overflow-hidden rounded-lg border border-primary/20 bg-background px-6 sm:px-8 py-3 font-mono font-medium uppercase text-foreground transition-colors hover:text-primary hover:border-primary max-w-full cursor-pointer",
                 className
             )}
+            {...extraProps}
             {...props}
         >
             <div className="relative z-10 flex items-center justify-center gap-2 max-w-full truncate">
@@ -101,6 +110,6 @@ export const EncryptButton = memo(function EncryptButton({
                 }}
                 className="duration-300 absolute inset-0 z-0 bg-linear-to-t from-primary/0 from-40% via-primary/10 to-primary/0 to-60% opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none"
             />
-        </motion.button>
+        </Component>
     )
 })

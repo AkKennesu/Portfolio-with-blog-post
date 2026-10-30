@@ -30,7 +30,7 @@ export async function generateMetadata({
     }
 
     return {
-        title: `${post.title} | Arn Kenneth`,
+        title: post.title,
         description: post.excerpt,
         openGraph: {
             title: post.title,
@@ -146,7 +146,7 @@ export default async function BlogPostPage({
 
                 {/* Cinematic Article Cover Banner */}
                 {post.cover_image && post.cover_image.trim() ? (
-                    <div className="relative w-full aspect-16/9 sm:aspect-21/9 rounded-2xl sm:rounded-3xl overflow-hidden border border-border/80 shadow-2xl mb-12 bg-muted/40 group">
+                    <div className="relative w-full aspect-video sm:aspect-21/9 rounded-2xl sm:rounded-3xl overflow-hidden border border-border/80 shadow-2xl mb-12 bg-muted/40 group">
                         <Image
                             src={post.cover_image}
                             alt={post.title}
@@ -175,7 +175,7 @@ export default async function BlogPostPage({
                             prose-blockquote:border-l-primary prose-blockquote:border-l-4 prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-muted-foreground
                             prose-ul:list-disc prose-ul:pl-6 prose-ol:list-decimal prose-ol:pl-6
                             prose-li:text-foreground/90 prose-li:my-1
-                            prose-img:rounded-2xl prose-img:border prose-img:border-border/70 prose-img:shadow-xl prose-img:max-h-[580px] prose-img:object-cover
+                            prose-img:rounded-2xl prose-img:border prose-img:border-border/70 prose-img:shadow-xl prose-img:max-h-145 prose-img:object-cover
                             prose-figure:my-10 prose-figure:mx-auto
                             prose-figcaption:text-center prose-figcaption:text-xs prose-figcaption:text-muted-foreground prose-figcaption:mt-3 prose-figcaption:font-medium"
                         dangerouslySetInnerHTML={{ __html: sanitizeContent(post.content) }}
