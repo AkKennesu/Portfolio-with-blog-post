@@ -10,8 +10,15 @@ import { ChevronLeft, ChevronRight, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 import { type Certificate } from "@/lib/certificates"
+import type { SettingsMap } from "@/actions/settings"
+import type { EducationItem } from "@/lib/data"
 
-export const Timeline = memo(function Timeline({ certificates }: { certificates: Certificate[] }) {
+interface TimelineProps {
+    certificates: Certificate[]
+    settings?: SettingsMap
+}
+
+export const Timeline = memo(function Timeline({ certificates, settings }: TimelineProps) {
     const [selectedCertificate, setSelectedCertificate] = useState<Certificate | null>(null)
 
     const handleSelectCertificate = useCallback((cert: Certificate) => {
@@ -36,38 +43,61 @@ export const Timeline = memo(function Timeline({ certificates }: { certificates:
         }
     }, [selectedCertificate, handleClose])
 
+    const sectionTitle = settings?.education_title ?? "Education Attainment"
+    const sectionSubtitle = settings?.education_subtitle ?? "My academic journey and professional milestones."
+
+    const items: EducationItem[] = (() => {
+        if (settings?.education_items) {
+            try {
+                const parsed = JSON.parse(settings.education_items)
+                if (Array.isArray(parsed) && parsed.length > 0) return parsed
+            } catch {
+                // fallback
+            }
+        }
+        return educationItems
+    })()
+
     return (
         <section id="education" className="py-24 sm:py-32 bg-muted/50 overflow-hidden">
             <div className="container mx-auto px-4 md:px-6">
                 {/* Education Section */}
                 <div className="flex flex-col items-center text-center mb-12">
-                    <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl mb-4">Education Attainment</h2>
-                    <p className="text-muted-foreground max-w-200">
-                        My academic journey and professional milestones.
-                    </p>
+                    <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl mb-4">{sectionTitle}</h2>
+                    {sectionSubtitle ? (
+                        <p className="text-muted-foreground max-w-200">
+                            {sectionSubtitle}
+                        </p>
+                    ) : null}
                 </div>
-                <div className="max-w-3xl mx-auto mb-24">
-                    {educationItems.map((item, index) => (
-                        <motion.div
-                            key={index}
-                            initial={{ opacity: 0, x: -20 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            transition={{ delay: index * 0.1 }}
-                            viewport={{ once: true }}
-                            className="relative pl-8 pb-12 last:pb-0 border-l border-border"
-                        >
-                            <div className="absolute -left-1.25 top-0 h-2.5 w-2.5 rounded-full bg-primary" />
-                            <div className="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-4 mb-1">
-                                <span className="text-sm font-bold text-primary">{item.year}</span>
-                                <h3 className="text-lg font-semibold">{item.title}</h3>
-                            </div>
-                            <p className="text-sm font-medium text-muted-foreground mb-2">{item.subtitle}</p>
-                            <p className="text-muted-foreground leading-relaxed">
-                                {item.description}
-                            </p>
-                        </motion.div>
-                    ))}
-                </div>
+                {items.length > 0 ? (
+                    <div className="max-w-3xl mx-auto mb-24">
+                        {items.map((item, index) => (
+                            <motion.div
+                                key={`${item.title}-${item.year}-${index}`}
+                                initial={{ opacity: 0, x: -20 }}
+                                whileInView={{ opacity: 1, x: 0 }}
+                                transition={{ delay: index * 0.1 }}
+                                viewport={{ once: true }}
+                                className="relative pl-8 pb-12 last:pb-0 border-l border-border"
+                            >
+                                <div className="absolute -left-1.25 top-0 h-2.5 w-2.5 rounded-full bg-primary" />
+                                <div className="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-4 mb-1">
+                                    <span className="text-sm font-bold text-primary">{item.year}</span>
+                                    <h3 className="text-lg font-semibold">{item.title}</h3>
+                                </div>
+                                {item.subtitle ? (
+                                    <p className="text-sm font-medium text-muted-foreground mb-2">{item.subtitle}</p>
+                                ) : null}
+                                {item.description ? (
+                                    <p className="text-muted-foreground leading-relaxed">
+                                        {item.description}
+                                    </p>
+                                ) : null}
+                            </motion.div>
+                        ))}
+                    </div>
+                ) : null}
 
                 {/* Certificates Section */}
                 <div className="flex flex-col items-center text-center mb-12">
@@ -98,7 +128,7 @@ export const Timeline = memo(function Timeline({ certificates }: { certificates:
                             initial={{ scale: 0.5, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0.5, opacity: 0 }}
-                            aria-label="Close certificate modal" className="absolute top-6 right-6 text-white bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors z-110"
+                            aria-label="Close certificate modal" className="absolute top-6 right-6 text-white bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors z-110 cursor-pointer"
                             onClick={handleClose}
                         >
                             <X className="w-6 h-6" />
@@ -177,7 +207,7 @@ const AchievementCarousel = memo(function AchievementCarousel({
             <Button
                 variant="outline"
                 size="icon"
-                className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 z-10 hidden md:flex h-12 w-12 rounded-full border-primary/20 bg-background/80 backdrop-blur-sm hover:bg-background shadow-xl"
+                className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 z-10 hidden md:flex h-12 w-12 rounded-full border-primary/20 bg-background/80 backdrop-blur-sm hover:bg-background shadow-xl cursor-pointer"
                 onClick={scrollPrev}
             >
                 <ChevronLeft className="h-6 w-6" />
@@ -187,7 +217,7 @@ const AchievementCarousel = memo(function AchievementCarousel({
             <Button
                 variant="outline"
                 size="icon"
-                className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 z-10 hidden md:flex h-12 w-12 rounded-full border-primary/20 bg-background/80 backdrop-blur-sm hover:bg-background shadow-xl"
+                className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 z-10 hidden md:flex h-12 w-12 rounded-full border-primary/20 bg-background/80 backdrop-blur-sm hover:bg-background shadow-xl cursor-pointer"
                 onClick={scrollNext}
             >
                 <ChevronRight className="h-6 w-6" />
@@ -196,11 +226,11 @@ const AchievementCarousel = memo(function AchievementCarousel({
 
             {/* Mobile controls */}
             <div className="flex justify-center gap-4 mt-8 md:hidden">
-                <Button variant="outline" size="icon" onClick={scrollPrev} aria-label="Previous certificate">
+                <Button variant="outline" size="icon" onClick={scrollPrev} aria-label="Previous certificate" className="cursor-pointer">
                     <ChevronLeft className="h-4 w-4" />
                     <span className="sr-only">Previous certificate</span>
                 </Button>
-                <Button variant="outline" size="icon" onClick={scrollNext} aria-label="Next certificate">
+                <Button variant="outline" size="icon" onClick={scrollNext} aria-label="Next certificate" className="cursor-pointer">
                     <ChevronRight className="h-4 w-4" />
                     <span className="sr-only">Next certificate</span>
                 </Button>

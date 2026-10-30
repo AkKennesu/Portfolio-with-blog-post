@@ -12,6 +12,14 @@ interface HeroProps {
 
 export function Hero({ settings }: HeroProps) {
     const cvHref = settings?.cv_file || "/cv.pdf"
+    const heroTitle = settings?.hero_title ?? "Building digital products that"
+    const heroHighlight = settings?.hero_highlight ?? "matter."
+    const heroDescription =
+        settings?.hero_description ??
+        "QA Engineer & Full-Stack Developer specializing in automated testing, reliable cloud architectures, and interface craftsmanship."
+
+    const hasHighlight = Boolean(heroHighlight && heroHighlight.trim())
+    const titleNeedsSpace = Boolean(heroTitle && !heroTitle.endsWith(" ") && hasHighlight)
 
     return (
         <div
@@ -25,12 +33,16 @@ export function Hero({ settings }: HeroProps) {
                     transition={{ duration: 0.5 }}
                 >
                     <h1 className="text-4xl font-normal tracking-tight sm:text-6xl md:text-7xl">
-                        <span>Building digital products that </span>
-                        <span className="text-primary block sm:inline font-bold">matter.</span>
+                        <span>{heroTitle}{titleNeedsSpace ? " " : ""}</span>
+                        {hasHighlight ? (
+                            <span className="text-primary block sm:inline font-bold">{heroHighlight}</span>
+                        ) : null}
                     </h1>
-                    <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
-                        QA Engineer &amp; Full-Stack Developer specializing in automated testing, reliable cloud architectures, and interface craftsmanship.
-                    </p>
+                    {heroDescription ? (
+                        <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
+                            {heroDescription}
+                        </p>
+                    ) : null}
                     <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
                         <EncryptButton
                             href="#projects"

@@ -24,7 +24,7 @@ export default async function Home() {
       <About settings={settings} />
       <Skills />
       <Projects />
-      <Timeline certificates={certificates} />
+      <Timeline certificates={certificates} settings={settings} />
       <BlogPreview posts={latestPosts} />
       <Contact settings={settings} />
     </div>

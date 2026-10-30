@@ -7,6 +7,7 @@ import { getPost, getPosts } from "@/lib/blog"
 import { sanitizeContent } from "@/lib/sanitize"
 import { estimateReadingTime, formatBlogDate, getPostCategory } from "@/lib/blog-utils"
 import { BlogShareToolbar } from "@/components/BlogShareToolbar"
+import { getSettings } from "@/actions/settings"
 
 export async function generateStaticParams() {
     const posts = await getPosts()
@@ -57,7 +58,7 @@ export default async function BlogPostPage({
     params: Promise<{ slug: string }>
 }) {
     const { slug } = await params
-    const [post, allPosts] = await Promise.all([getPost(slug), getPosts()])
+    const [post, allPosts, settings] = await Promise.all([getPost(slug), getPosts(), getSettings()])
 
     if (!post) {
         notFound()
@@ -130,8 +131,13 @@ export default async function BlogPostPage({
                     <div className="pt-6 border-t border-border/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div className="flex items-center gap-3">
                             <div className="w-11 h-11 rounded-full bg-linear-to-tr from-primary to-accent p-0.5 flex items-center justify-center">
-                                <div className="w-full h-full rounded-full bg-background flex items-center justify-center font-bold text-xs text-foreground">
-                                    AK
+                                <div className="w-full h-full rounded-full bg-background flex items-center justify-center font-bold text-xs text-foreground overflow-hidden">
+                                    {settings.logo_image ? (
+                                        // eslint-disable-next-line @next/next/no-img-element
+                                        <img src={settings.logo_image} alt={settings.logo_text || "AK"} className="w-full h-full object-cover" />
+                                    ) : (
+                                        settings.logo_text || "AK"
+                                    )}
                                 </div>
                             </div>
                             <div>

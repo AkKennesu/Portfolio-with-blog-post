@@ -19,6 +19,12 @@ export const Navbar = memo(function Navbar({ settings }: { settings?: SettingsMa
     const cvHref = settings?.cv_file || "/cv.pdf"
     const isBlogRoute = pathname?.startsWith("/blog")
 
+    const hasLogoImage = Boolean(settings?.logo_image && settings.logo_image.trim())
+    const rawLogoText = settings?.logo_text
+    const logoText = rawLogoText !== undefined ? rawLogoText : "AK"
+    const showLogoText = !hasLogoImage || Boolean(logoText.trim())
+    const displayLogoText = logoText.trim() || (hasLogoImage ? "" : "AK")
+
     return (
         <header
             className={cn(
@@ -30,10 +36,20 @@ export const Navbar = memo(function Navbar({ settings }: { settings?: SettingsMa
         >
             <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center gap-2">
-                    <Link href="/" className="flex items-center space-x-2">
-                        <span className="text-xl font-bold bg-linear-to-r from-primary to-accent bg-clip-text text-transparent">
-                            AK
-                        </span>
+                    <Link href="/" className="flex items-center space-x-2.5 group">
+                        {hasLogoImage ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                                src={settings!.logo_image}
+                                alt={displayLogoText || "Logo"}
+                                className="h-8 w-auto max-h-8 max-w-32 object-contain rounded"
+                            />
+                        ) : null}
+                        {showLogoText && displayLogoText ? (
+                            <span className="text-xl font-bold bg-linear-to-r from-primary to-accent bg-clip-text text-transparent">
+                                {displayLogoText}
+                            </span>
+                        ) : null}
                     </Link>
                 </div>
 
