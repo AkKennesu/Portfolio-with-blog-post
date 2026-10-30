@@ -3,7 +3,7 @@ import { getPosts } from "@/lib/blog"
 import { BlogList } from "@/components/BlogList"
 
 export const metadata: Metadata = {
-    title: "Engineering Journal & Articles | Arn Kenneth",
+    title: "Engineering Journal & Articles",
     description: "Insights on full-stack architecture, high-performance web applications, interface craftsmanship, and modern software design.",
 }
 

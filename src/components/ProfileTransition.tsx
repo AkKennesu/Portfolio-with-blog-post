@@ -294,7 +294,7 @@ const ProfileTransition = memo(function ProfileTransition({
     }, [image1, image2, width, height])
 
     return (
-        <div ref={containerRef} className="w-full h-full cursor-pointer relative" />
+        <div ref={containerRef} role="img" aria-label="Interactive 3D portrait of Arn Kenneth" className="w-full h-full cursor-pointer relative" />
     )
 })
 

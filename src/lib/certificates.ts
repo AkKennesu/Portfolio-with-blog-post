@@ -22,14 +22,13 @@ export const getCertificates = unstable_cache(
   }
 );
 
-export const getCertificate = (id: number) =>
-  unstable_cache(
-    async (): Promise<Certificate | undefined> => {
-      return await CertificateRepository.findById(id);
-    },
-    [`certificate-${id}`],
-    {
-      tags: [`certificate-${id}`, "certificates", "admin-unified-data"],
-      revalidate: 300,
-    }
-  )();
+export const getCertificate = unstable_cache(
+  async (id: number): Promise<Certificate | undefined> => {
+    return await CertificateRepository.findById(id);
+  },
+  ["certificate-by-id"],
+  {
+    tags: ["certificates", "admin-unified-data"],
+    revalidate: 300,
+  }
+);

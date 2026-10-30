@@ -5,7 +5,7 @@ export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs))
 }
 
-export function scrollToSection(e: React.MouseEvent<HTMLAnchorElement>, href: string) {
+export function scrollToSection(e: React.MouseEvent<HTMLElement>, href: string) {
     // Only intercept anchor links on the current page
     if (href.startsWith("/#") || href === "/") {
         if (window.location.pathname === "/") {

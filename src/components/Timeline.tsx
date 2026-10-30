@@ -1,6 +1,6 @@
 "use client"
 
-import { memo, useCallback, useState } from "react"
+import { memo, useCallback, useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import Image from "next/image"
 import { educationItems } from "@/lib/data"
@@ -21,6 +21,20 @@ export const Timeline = memo(function Timeline({ certificates }: { certificates:
     const handleClose = useCallback(() => {
         setSelectedCertificate(null)
     }, [])
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape") handleClose()
+        }
+        if (selectedCertificate) {
+            window.addEventListener("keydown", handleKeyDown)
+            document.body.style.overflow = "hidden"
+        }
+        return () => {
+            window.removeEventListener("keydown", handleKeyDown)
+            document.body.style.overflow = ""
+        }
+    }, [selectedCertificate, handleClose])
 
     return (
         <section id="education" className="py-24 sm:py-32 bg-muted/50 overflow-hidden">
@@ -78,13 +92,13 @@ export const Timeline = memo(function Timeline({ certificates }: { certificates:
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={handleClose}
-                        className="fixed inset-0 z-100 flex items-center justify-center bg-black/95 p-4 md:p-10 cursor-zoom-out"
+                        role="dialog" aria-modal="true" aria-label="Certificate details" className="fixed inset-0 z-100 flex items-center justify-center bg-black/95 p-4 md:p-10 cursor-zoom-out"
                     >
                         <motion.button
                             initial={{ scale: 0.5, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0.5, opacity: 0 }}
-                            className="absolute top-6 right-6 text-white bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors z-110"
+                            aria-label="Close certificate modal" className="absolute top-6 right-6 text-white bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors z-110"
                             onClick={handleClose}
                         >
                             <X className="w-6 h-6" />
@@ -182,11 +196,13 @@ const AchievementCarousel = memo(function AchievementCarousel({
 
             {/* Mobile controls */}
             <div className="flex justify-center gap-4 mt-8 md:hidden">
-                <Button variant="outline" size="icon" onClick={scrollPrev}>
+                <Button variant="outline" size="icon" onClick={scrollPrev} aria-label="Previous certificate">
                     <ChevronLeft className="h-4 w-4" />
+                    <span className="sr-only">Previous certificate</span>
                 </Button>
-                <Button variant="outline" size="icon" onClick={scrollNext}>
+                <Button variant="outline" size="icon" onClick={scrollNext} aria-label="Next certificate">
                     <ChevronRight className="h-4 w-4" />
+                    <span className="sr-only">Next certificate</span>
                 </Button>
             </div>
         </motion.div>
@@ -207,8 +223,17 @@ const AchievementCard = memo(function AchievementCard({ item, onClick }: Achieve
 
     return (
         <div
+            role="button"
+            tabIndex={0}
+            aria-label={`View certificate: ${item.title}`}
             onClick={handleClick}
-            className="group relative m-0 flex h-72 w-full max-w-100 rounded-xl shadow-xl ring-gray-900/5 sm:mx-auto cursor-zoom-in overflow-hidden"
+            onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault()
+                    handleClick()
+                }
+            }}
+            className="group relative m-0 flex h-72 w-full max-w-100 rounded-xl shadow-xl ring-gray-900/5 sm:mx-auto cursor-zoom-in overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         >
             <div className="relative z-10 h-full w-full overflow-hidden rounded-xl border border-gray-200 opacity-90 transition duration-300 ease-in-out group-hover:opacity-100 dark:border-gray-700 bg-muted/30">
                 {Boolean(item.image && item.image.trim()) ? (
@@ -228,7 +253,7 @@ const AchievementCard = memo(function AchievementCard({ item, onClick }: Achieve
                 )}
             </div>
             {/* Gradient shadow for text readability over certificates */}
-            <div className="absolute inset-0 z-15 bg-gradient-to-t from-black/85 via-black/35 to-transparent pointer-events-none rounded-xl" />
+            <div className="absolute inset-0 z-15 bg-linear-to-t from-black/85 via-black/35 to-transparent pointer-events-none rounded-xl" />
             <div className="absolute bottom-0 z-20 m-0 pb-6 ps-6 transition duration-300 ease-in-out group-hover:-translate-y-1 group-hover:translate-x-2 group-hover:scale-105 pointer-events-none">
                 <h3 className="text-xl font-bold text-white shadow-xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] line-clamp-1">{item.title}</h3>
                 <p className="text-sm font-medium text-gray-200 shadow-xl drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">{item.subtitle} ({item.year})</p>

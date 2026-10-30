@@ -178,7 +178,7 @@ export function BlogForm({ post }: { post?: Post }) {
                             defaultValue={post?.excerpt}
                             rows={3}
                             placeholder="A concise summary of the key insights covered in this article..."
-                            className="flex min-h-[80px] w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm text-foreground ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent transition-all"
+                            className="flex min-h-20 w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm text-foreground ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent transition-all"
                         />
                     </div>
 
@@ -401,10 +401,10 @@ export function BlogForm({ post }: { post?: Post }) {
                                 defaultValue={post?.content || ""}
                                 onChange={(e) => debouncedSetPreviewContent(e.target.value)}
                                 placeholder="<p>Write your article here or use the toolbar above to add photos, headings, and code...</p>"
-                                className="flex min-h-[380px] w-full rounded-2xl border border-input bg-background p-4 text-sm font-mono text-foreground ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent transition-all leading-relaxed"
+                                className="flex min-h-95 w-full rounded-2xl border border-input bg-background p-4 text-sm font-mono text-foreground ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent transition-all leading-relaxed"
                             />
                         ) : (
-                            <div className="rounded-2xl border border-border bg-card/90 backdrop-blur-md p-6 sm:p-10 min-h-[380px] shadow-inner overflow-y-auto">
+                            <div className="rounded-2xl border border-border bg-card/90 backdrop-blur-md p-6 sm:p-10 min-h-95 shadow-inner overflow-y-auto">
                                 {previewContent.trim() ? (
                                     <article
                                         className="prose prose-invert prose-lg max-w-none 
@@ -413,7 +413,7 @@ export function BlogForm({ post }: { post?: Post }) {
                                             prose-h3:text-xl prose-h3:mt-6 prose-h3:mb-2
                                             prose-p:text-foreground/90 prose-p:leading-relaxed prose-p:mb-5
                                             prose-a:text-primary prose-a:underline hover:prose-a:text-primary/80
-                                            prose-img:rounded-xl prose-img:border prose-img:border-border/80 prose-img:shadow-md prose-img:max-h-[500px] prose-img:object-cover
+                                            prose-img:rounded-xl prose-img:border prose-img:border-border/80 prose-img:shadow-md prose-img:max-h-125 prose-img:object-cover
                                             prose-figure:my-6
                                             prose-figcaption:text-xs prose-figcaption:text-center prose-figcaption:text-muted-foreground prose-figcaption:mt-2"
                                         dangerouslySetInnerHTML={{ __html: sanitizeContent(previewContent) }}
