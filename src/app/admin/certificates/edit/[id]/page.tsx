@@ -10,10 +10,9 @@ export default async function EditCertPage({
 }: {
     params: Promise<{ id: string }>
 }) {
-    const session = await getSession()
+    const [{ id }, session] = await Promise.all([params, getSession()])
     if (!session) redirect("/admin/login")
 
-    const { id } = await params
     const cert = await getCertificate(parseInt(id))
 
     if (!cert) {

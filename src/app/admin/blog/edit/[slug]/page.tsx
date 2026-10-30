@@ -10,10 +10,9 @@ export default async function EditBlogPage({
 }: {
     params: Promise<{ slug: string }>
 }) {
-    const session = await getSession()
+    const [{ slug }, session] = await Promise.all([params, getSession()])
     if (!session) redirect("/admin/login")
 
-    const { slug } = await params
     const post = await getPost(slug)
 
     if (!post) {

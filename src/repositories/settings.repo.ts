@@ -51,24 +51,23 @@ export class SettingsRepository {
   });
 
   /**
-   * Single-statement atomic batch upsert for settings (replaces loop of 5 individual queries).
+   * Single-statement atomic batch upsert for settings (eliminates loop of individual round-trips).
    */
   static async updateBatch(entries: Record<string, string>): Promise<void> {
-    const keys = Object.keys(entries);
-    if (keys.length === 0) return;
+    const validEntries = Object.entries(entries).filter(
+      ([, value]) => value !== undefined && value !== null
+    );
+    if (validEntries.length === 0) return;
 
-    // Use transaction with unnest or multi-row insert
-    await sqlClient.begin(async (sql) => {
-      for (const [key, value] of Object.entries(entries)) {
-        if (value !== undefined && value !== null) {
-          await sql`
-            INSERT INTO site_settings (key, value)
-            VALUES (${key}, ${value})
-            ON CONFLICT (key) 
-            DO UPDATE SET value = ${value}, updated_at = CURRENT_TIMESTAMP
-          `;
-        }
-      }
-    });
+    const keys = validEntries.map(([k]) => k);
+    const values = validEntries.map(([, v]) => v);
+
+    // Single network round-trip UNNEST batch upsert
+    await sqlClient`
+      INSERT INTO site_settings (key, value)
+      SELECT * FROM UNNEST(${keys}::text[], ${values}::text[]) AS t(key, value)
+      ON CONFLICT (key) 
+      DO UPDATE SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP
+    `;
   }
 }

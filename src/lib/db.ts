@@ -132,42 +132,60 @@ export async function initDb() {
       );
     `;
 
-    // 6. Performance Indexes (Covering, Partial, and GIN)
-    // Blog Posts: Covering index to serve list/archive directly from index leaf pages (Index-Only Scan)
+    // 6. Performance Indexes (Covering, Partial, Composite, and pg_trgm GIN)
+    await sqlClient`CREATE EXTENSION IF NOT EXISTS pg_trgm;`;
+
+    // Blog Posts: Date index, composite index, covering index, full-text & trigram indexes
+    await sqlClient`CREATE INDEX IF NOT EXISTS idx_blog_posts_date ON blog_posts (date DESC);`;
+    await sqlClient`CREATE INDEX IF NOT EXISTS idx_blog_posts_date_created ON blog_posts (date DESC, created_at DESC);`;
     await sqlClient`
       CREATE INDEX IF NOT EXISTS idx_blog_posts_date_covering 
       ON blog_posts (date DESC) 
       INCLUDE (slug, title, excerpt, cover_image);
     `;
-    await sqlClient`CREATE INDEX IF NOT EXISTS idx_blog_posts_date ON blog_posts (date DESC);`;
-
-    // Blog Posts: Full-text search GIN index
     await sqlClient`
       CREATE INDEX IF NOT EXISTS idx_blog_posts_fts 
       ON blog_posts USING gin (
         to_tsvector('english', coalesce(title, '') || ' ' || coalesce(excerpt, '') || ' ' || coalesce(content, ''))
       );
     `;
+    await sqlClient`CREATE INDEX IF NOT EXISTS idx_blog_posts_title_trgm ON blog_posts USING gin (title gin_trgm_ops);`;
+    await sqlClient`CREATE INDEX IF NOT EXISTS idx_blog_posts_excerpt_trgm ON blog_posts USING gin (excerpt gin_trgm_ops);`;
 
-    // Certificates: Composite and Covering index
+    // Certificates: Composite and Covering index + trigram search indexes
     await sqlClient`CREATE INDEX IF NOT EXISTS idx_certificates_year_created ON certificates (year DESC, created_at DESC);`;
     await sqlClient`
       CREATE INDEX IF NOT EXISTS idx_certificates_year_title 
       ON certificates (year DESC, created_at DESC) 
       INCLUDE (title, subtitle);
     `;
+    await sqlClient`CREATE INDEX IF NOT EXISTS idx_certificates_title_trgm ON certificates USING gin (title gin_trgm_ops);`;
+    await sqlClient`CREATE INDEX IF NOT EXISTS idx_certificates_subtitle_trgm ON certificates USING gin (subtitle gin_trgm_ops);`;
+    await sqlClient`CREATE INDEX IF NOT EXISTS idx_certificates_description_trgm ON certificates USING gin (description gin_trgm_ops);`;
 
-    // Messages: Partial indexes for unread & important counts + covering index
+    // Messages: Status composite indexes, partial indexes + covering index + trigram search indexes
     await sqlClient`CREATE INDEX IF NOT EXISTS idx_messages_created ON messages (created_at DESC);`;
     await sqlClient`CREATE INDEX IF NOT EXISTS idx_messages_unread ON messages (created_at DESC) WHERE is_read = false;`;
     await sqlClient`CREATE INDEX IF NOT EXISTS idx_messages_important ON messages (created_at DESC) WHERE is_important = true;`;
+    await sqlClient`CREATE INDEX IF NOT EXISTS idx_messages_is_read_created ON messages (is_read, created_at DESC);`;
+    await sqlClient`CREATE INDEX IF NOT EXISTS idx_messages_is_important_created ON messages (is_important, created_at DESC);`;
+    await sqlClient`CREATE INDEX IF NOT EXISTS idx_messages_status_composite ON messages (is_read, is_important, created_at DESC);`;
     await sqlClient`
       CREATE INDEX IF NOT EXISTS idx_messages_created_covering 
       ON messages (created_at DESC) 
       INCLUDE (name, email, is_read, is_important);
     `;
+    await sqlClient`CREATE INDEX IF NOT EXISTS idx_messages_name_trgm ON messages USING gin (name gin_trgm_ops);`;
+    await sqlClient`CREATE INDEX IF NOT EXISTS idx_messages_email_trgm ON messages USING gin (email gin_trgm_ops);`;
+    await sqlClient`CREATE INDEX IF NOT EXISTS idx_messages_message_trgm ON messages USING gin (message gin_trgm_ops);`;
 
-    // Admin Users: Covering index for authentication
+    // Site Settings: Trigram indexes for key/value search
+    await sqlClient`CREATE INDEX IF NOT EXISTS idx_site_settings_key_trgm ON site_settings USING gin (key gin_trgm_ops);`;
+    await sqlClient`CREATE INDEX IF NOT EXISTS idx_site_settings_value_trgm ON site_settings USING gin (value gin_trgm_ops);`;
+
+    // Admin Users: Functional and covering indexes for authentication & RLS
+    await sqlClient`CREATE INDEX IF NOT EXISTS idx_admin_users_id_text ON admin_users ((id::text));`;
+    await sqlClient`CREATE INDEX IF NOT EXISTS idx_admin_users_username_btree ON admin_users USING btree (username);`;
     await sqlClient`
       CREATE INDEX IF NOT EXISTS idx_admin_users_username_covering 
       ON admin_users (username) 
@@ -181,40 +199,212 @@ export async function initDb() {
     await sqlClient`ALTER TABLE site_settings ENABLE ROW LEVEL SECURITY;`;
     await sqlClient`ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;`;
 
-    // 8. RLS Policies and Least Privilege Grants
+    // 8. RLS Policies and Performance-Optimized Admin Functions
     await sqlClient`
+      CREATE OR REPLACE FUNCTION public.is_admin()
+      RETURNS boolean
+      LANGUAGE sql
+      STABLE
+      SECURITY DEFINER
+      SET search_path = ''
+      AS $$
+        SELECT (
+          (session_user = 'postgres' AND (SELECT auth.role()) IS NULL)
+          OR (SELECT auth.role()) = 'service_role'
+          OR coalesce((SELECT auth.jwt() -> 'app_metadata' ->> 'role'), '') = 'admin'
+          OR coalesce((SELECT auth.jwt() -> 'user_metadata' ->> 'role'), '') = 'admin'
+          OR coalesce((SELECT nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'role'), '') = 'admin'
+          OR (
+            (SELECT auth.uid()) IS NOT NULL
+            AND EXISTS (
+              SELECT 1 FROM public.admin_users
+              WHERE username = (SELECT auth.jwt() ->> 'email')
+                 OR id::text = (SELECT auth.uid())::text
+            )
+          )
+        );
+      $$;
+
+      REVOKE ALL ON FUNCTION public.is_admin() FROM PUBLIC, anon;
+      GRANT EXECUTE ON FUNCTION public.is_admin() TO authenticated, service_role;
+    `;
+
+    await sqlClient`
+      -- Drop legacy policies
+      DROP POLICY IF EXISTS "Public can view blog posts" ON blog_posts;
+      DROP POLICY IF EXISTS "Public can view certificates" ON certificates;
+      DROP POLICY IF EXISTS "Public can view site settings" ON site_settings;
+      DROP POLICY IF EXISTS "Public can insert contact messages" ON messages;
+
+      -- Blog Posts: Public read, authenticated admin write (cached via InitPlan)
       DO $$
       BEGIN
-        IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'blog_posts' AND policyname = 'Public can view blog posts') THEN
-          CREATE POLICY "Public can view blog posts" ON blog_posts FOR SELECT TO anon, authenticated USING (true);
+        IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'blog_posts' AND policyname = 'blog_posts_select_public') THEN
+          CREATE POLICY "blog_posts_select_public" ON blog_posts FOR SELECT TO anon, authenticated USING (true);
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'blog_posts' AND policyname = 'blog_posts_admin_insert') THEN
+          CREATE POLICY "blog_posts_admin_insert" ON blog_posts FOR INSERT TO authenticated WITH CHECK ((SELECT public.is_admin()));
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'blog_posts' AND policyname = 'blog_posts_admin_update') THEN
+          CREATE POLICY "blog_posts_admin_update" ON blog_posts FOR UPDATE TO authenticated USING ((SELECT public.is_admin())) WITH CHECK ((SELECT public.is_admin()));
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'blog_posts' AND policyname = 'blog_posts_admin_delete') THEN
+          CREATE POLICY "blog_posts_admin_delete" ON blog_posts FOR DELETE TO authenticated USING ((SELECT public.is_admin()));
         END IF;
 
-        IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'certificates' AND policyname = 'Public can view certificates') THEN
-          CREATE POLICY "Public can view certificates" ON certificates FOR SELECT TO anon, authenticated USING (true);
+        -- Certificates
+        IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'certificates' AND policyname = 'certificates_select_public') THEN
+          CREATE POLICY "certificates_select_public" ON certificates FOR SELECT TO anon, authenticated USING (true);
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'certificates' AND policyname = 'certificates_admin_insert') THEN
+          CREATE POLICY "certificates_admin_insert" ON certificates FOR INSERT TO authenticated WITH CHECK ((SELECT public.is_admin()));
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'certificates' AND policyname = 'certificates_admin_update') THEN
+          CREATE POLICY "certificates_admin_update" ON certificates FOR UPDATE TO authenticated USING ((SELECT public.is_admin())) WITH CHECK ((SELECT public.is_admin()));
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'certificates' AND policyname = 'certificates_admin_delete') THEN
+          CREATE POLICY "certificates_admin_delete" ON certificates FOR DELETE TO authenticated USING ((SELECT public.is_admin()));
         END IF;
 
-        IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'site_settings' AND policyname = 'Public can view site settings') THEN
-          CREATE POLICY "Public can view site settings" ON site_settings FOR SELECT TO anon, authenticated USING (true);
+        -- Site Settings
+        IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'site_settings' AND policyname = 'site_settings_select_public') THEN
+          CREATE POLICY "site_settings_select_public" ON site_settings FOR SELECT TO anon, authenticated USING (true);
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'site_settings' AND policyname = 'site_settings_admin_insert') THEN
+          CREATE POLICY "site_settings_admin_insert" ON site_settings FOR INSERT TO authenticated WITH CHECK ((SELECT public.is_admin()));
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'site_settings' AND policyname = 'site_settings_admin_update') THEN
+          CREATE POLICY "site_settings_admin_update" ON site_settings FOR UPDATE TO authenticated USING ((SELECT public.is_admin())) WITH CHECK ((SELECT public.is_admin()));
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'site_settings' AND policyname = 'site_settings_admin_delete') THEN
+          CREATE POLICY "site_settings_admin_delete" ON site_settings FOR DELETE TO authenticated USING ((SELECT public.is_admin()));
         END IF;
 
-        IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'messages' AND policyname = 'Public can insert contact messages') THEN
-          CREATE POLICY "Public can insert contact messages" ON messages FOR INSERT TO anon, authenticated WITH CHECK (true);
+        -- Messages
+        IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'messages' AND policyname = 'messages_insert_public') THEN
+          CREATE POLICY "messages_insert_public" ON messages FOR INSERT TO anon, authenticated WITH CHECK (true);
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'messages' AND policyname = 'messages_admin_select') THEN
+          CREATE POLICY "messages_admin_select" ON messages FOR SELECT TO authenticated USING ((SELECT public.is_admin()));
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'messages' AND policyname = 'messages_admin_update') THEN
+          CREATE POLICY "messages_admin_update" ON messages FOR UPDATE TO authenticated USING ((SELECT public.is_admin())) WITH CHECK ((SELECT public.is_admin()));
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'messages' AND policyname = 'messages_admin_delete') THEN
+          CREATE POLICY "messages_admin_delete" ON messages FOR DELETE TO authenticated USING ((SELECT public.is_admin()));
+        END IF;
+
+        -- Admin Users
+        IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'admin_users' AND policyname = 'admin_users_admin_select') THEN
+          CREATE POLICY "admin_users_admin_select" ON admin_users FOR SELECT TO authenticated USING ((SELECT public.is_admin()));
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'admin_users' AND policyname = 'admin_users_admin_insert') THEN
+          CREATE POLICY "admin_users_admin_insert" ON admin_users FOR INSERT TO authenticated WITH CHECK ((SELECT public.is_admin()));
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'admin_users' AND policyname = 'admin_users_admin_update') THEN
+          CREATE POLICY "admin_users_admin_update" ON admin_users FOR UPDATE TO authenticated USING ((SELECT public.is_admin())) WITH CHECK ((SELECT public.is_admin()));
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'admin_users' AND policyname = 'admin_users_admin_delete') THEN
+          CREATE POLICY "admin_users_admin_delete" ON admin_users FOR DELETE TO authenticated USING ((SELECT public.is_admin()));
         END IF;
       END $$;
     `;
 
     await sqlClient`
-      REVOKE ALL ON TABLE admin_users FROM anon, authenticated, public;
-      REVOKE SELECT, UPDATE, DELETE, TRUNCATE ON TABLE messages FROM anon, authenticated, public;
-      REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON TABLE blog_posts FROM anon, authenticated, public;
-      REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON TABLE certificates FROM anon, authenticated, public;
-      REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON TABLE site_settings FROM anon, authenticated, public;
+      REVOKE ALL ON ALL TABLES IN SCHEMA public FROM anon;
+      GRANT SELECT ON TABLE blog_posts, certificates, site_settings TO anon;
+      GRANT INSERT ON TABLE messages TO anon;
+      GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO anon;
 
-      GRANT SELECT ON TABLE blog_posts TO anon, authenticated;
-      GRANT SELECT ON TABLE certificates TO anon, authenticated;
-      GRANT SELECT ON TABLE site_settings TO anon, authenticated;
-      GRANT INSERT ON TABLE messages TO anon, authenticated;
-      GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated;
+      REVOKE ALL ON ALL TABLES IN SCHEMA public FROM authenticated;
+      GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE blog_posts, certificates, site_settings, messages, admin_users TO authenticated;
+      GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO authenticated;
+    `;
+
+    // 9. PostgreSQL RPC Function for Admin Dashboard Stats
+    await sqlClient`
+      CREATE OR REPLACE FUNCTION public.get_admin_dashboard_stats()
+      RETURNS jsonb
+      LANGUAGE plpgsql
+      SECURITY DEFINER
+      SET search_path = public, auth
+      AS $
+      DECLARE
+        v_result jsonb;
+      BEGIN
+        IF NOT (SELECT public.is_admin()) THEN
+          RAISE EXCEPTION 'Access denied: caller does not possess administrative privileges'
+            USING ERRCODE = '42501';
+        END IF;
+
+        SELECT jsonb_build_object(
+          'kpis', jsonb_build_object(
+            'blog_count', (SELECT count(*) FROM public.blog_posts),
+            'cert_count', (SELECT count(*) FROM public.certificates),
+            'message_count', (SELECT count(*) FROM public.messages),
+            'unread_message_count', (SELECT count(*) FROM public.messages WHERE is_read = false)
+          ),
+          'aggregations', jsonb_build_object(
+            'messages_by_status', jsonb_build_object(
+              'unread', (SELECT count(*) FROM public.messages WHERE is_read = false),
+              'read', (SELECT count(*) FROM public.messages WHERE is_read = true)
+            ),
+            'certs_by_year', COALESCE((
+              SELECT jsonb_agg(jsonb_build_object('year', year, 'count', count))
+              FROM (
+                SELECT year, count(*) AS count
+                FROM public.certificates
+                GROUP BY year
+                ORDER BY year DESC
+              ) cy
+            ), '[]'::jsonb),
+            'monthly_inquiries', COALESCE((
+              SELECT jsonb_agg(jsonb_build_object('month', month, 'count', count))
+              FROM (
+                SELECT to_char(date_trunc('month', created_at), 'YYYY-MM') AS month, count(*) AS count
+                FROM public.messages
+                GROUP BY date_trunc('month', created_at)
+                ORDER BY date_trunc('month', created_at) DESC
+                LIMIT 6
+              ) mi
+            ), '[]'::jsonb)
+          ),
+          'recent_messages', COALESCE((
+            SELECT jsonb_agg(m)
+            FROM (
+              SELECT 
+                id, 
+                name, 
+                email, 
+                substring(message from 1 for 100) AS snippet, 
+                is_read, 
+                to_char(created_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS created_at
+              FROM public.messages 
+              ORDER BY created_at DESC 
+              LIMIT 4
+            ) m
+          ), '[]'::jsonb),
+          'recent_posts', COALESCE((
+            SELECT jsonb_agg(p)
+            FROM (
+              SELECT 
+                id, 
+                title, 
+                slug, 
+                to_char(date, 'YYYY-MM-DD') AS date
+              FROM public.blog_posts 
+              ORDER BY date DESC 
+              LIMIT 3
+            ) p
+          ), '[]'::jsonb)
+        ) INTO v_result;
+
+        RETURN v_result;
+      END;
+      $;
+
+      REVOKE ALL ON FUNCTION public.get_admin_dashboard_stats() FROM PUBLIC, anon;
+      GRANT EXECUTE ON FUNCTION public.get_admin_dashboard_stats() TO authenticated, service_role;
     `;
 
     console.log("✅ Database tables, indexes, RLS, and secure policies initialized successfully");

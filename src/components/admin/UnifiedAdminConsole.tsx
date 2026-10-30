@@ -105,7 +105,8 @@ export default function UnifiedAdminConsole({
     }
   };
 
-  const unreadCount = initialData.messages.filter((m) => !m.is_read).length;
+  // Use server-side indexed unread count directly, avoiding redundant client-side array filter loops
+  const unreadCount = initialData.overview?.unreadMessageCount ?? initialData.messages.filter((m) => !m.is_read).length;
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-background text-foreground">

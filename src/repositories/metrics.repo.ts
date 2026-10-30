@@ -7,6 +7,21 @@ export interface DashboardMetrics {
   messageCount: number;
 }
 
+export interface DashboardAggregations {
+  messages_by_status?: {
+    read: number;
+    unread: number;
+  };
+  certs_by_year?: Array<{
+    year: number;
+    count: number;
+  }>;
+  monthly_inquiries?: Array<{
+    month: string;
+    count: number;
+  }>;
+}
+
 export interface DashboardOverview {
   blogCount: number;
   certCount: number;
@@ -26,6 +41,7 @@ export interface DashboardOverview {
     slug: string;
     date: string;
   }>;
+  aggregations?: DashboardAggregations;
 }
 
 export class MetricsRepository {
@@ -60,8 +76,8 @@ export class MetricsRepository {
   });
 
   /**
-   * Ultra-fast single-roundtrip JSON aggregation query.
-   * Consolidates counts, recent messages, and recent posts into 1 single network hop.
+   * Ultra-fast single-roundtrip PostgreSQL RPC function execution.
+   * Calls get_admin_dashboard_stats() directly to retrieve all KPIs, aggregations, and feeds in 1 hop.
    */
   static getDashboardOverview = cache(async (): Promise<DashboardOverview> => {
     if (!process.env.POSTGRES_URL) {
@@ -76,6 +92,40 @@ export class MetricsRepository {
     }
 
     try {
+      // 1. Primary: Single-roundtrip PostgreSQL RPC function
+      const { rows } = await dbQuery`
+        SELECT public.get_admin_dashboard_stats() AS stats;
+      `;
+
+      if (rows && rows[0] && rows[0].stats) {
+        const stats = rows[0].stats as {
+          kpis?: {
+            blog_count?: number;
+            cert_count?: number;
+            message_count?: number;
+            unread_message_count?: number;
+          };
+          aggregations?: DashboardAggregations;
+          recent_messages?: DashboardOverview["recentMessages"];
+          recent_posts?: DashboardOverview["recentPosts"];
+        };
+
+        return {
+          blogCount: Number(stats.kpis?.blog_count || 0),
+          certCount: Number(stats.kpis?.cert_count || 0),
+          messageCount: Number(stats.kpis?.message_count || 0),
+          unreadMessageCount: Number(stats.kpis?.unread_message_count || 0),
+          recentMessages: stats.recent_messages || [],
+          recentPosts: stats.recent_posts || [],
+          aggregations: stats.aggregations,
+        };
+      }
+    } catch (rpcError) {
+      console.warn("RPC get_admin_dashboard_stats not available, falling back to CTE aggregation:", rpcError);
+    }
+
+    try {
+      // 2. Resilient fallback query
       const { rows } = await dbQuery`
         SELECT 
           (SELECT count(*) FROM blog_posts) AS blog_count,
