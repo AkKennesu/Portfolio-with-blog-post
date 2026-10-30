@@ -29,8 +29,8 @@ export async function createPost(formData: FormData) {
     revalidatePath("/blog");
     revalidatePath("/admin/dashboard");
     revalidatePath("/");
-    revalidateTag("blog-posts");
-    revalidateTag("admin-unified-data");
+    revalidateTag("blog-posts", "max");
+    revalidateTag("admin-unified-data", "max");
     redirect("/admin/dashboard?tab=blog");
   }
 }
@@ -61,12 +61,12 @@ export async function updatePost(id: number, formData: FormData) {
     revalidatePath("/blog");
     if (newSlug) {
       revalidatePath(`/blog/${newSlug}`);
-      revalidateTag(`blog-post-${newSlug}`);
+      revalidateTag(`blog-post-${newSlug}`, "max");
     }
     revalidatePath("/admin/dashboard");
     revalidatePath("/");
-    revalidateTag("blog-posts");
-    revalidateTag("admin-unified-data");
+    revalidateTag("blog-posts", "max");
+    revalidateTag("admin-unified-data", "max");
     redirect("/admin/dashboard?tab=blog");
   }
 }
@@ -77,8 +77,8 @@ export async function deletePost(id: number): Promise<{ success: boolean; error?
     revalidatePath("/blog");
     revalidatePath("/admin/dashboard");
     revalidatePath("/");
-    revalidateTag("blog-posts");
-    revalidateTag("admin-unified-data");
+    revalidateTag("blog-posts", "max");
+    revalidateTag("admin-unified-data", "max");
     return { success: true };
   } catch (error) {
     console.error("Failed to delete post:", error);
@@ -99,8 +99,8 @@ export async function deletePosts(ids: number[]): Promise<{ success: boolean; er
     revalidatePath("/blog");
     revalidatePath("/admin/dashboard");
     revalidatePath("/");
-    revalidateTag("blog-posts");
-    revalidateTag("admin-unified-data");
+    revalidateTag("blog-posts", "max");
+    revalidateTag("admin-unified-data", "max");
     return { success: true };
   } catch (error) {
     console.error("Failed to batch delete posts:", error);

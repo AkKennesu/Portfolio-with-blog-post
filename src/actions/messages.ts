@@ -18,7 +18,7 @@ export async function toggleRead(id: number, status: boolean): Promise<void> {
     await MessageRepository.toggleRead(id, status);
     revalidatePath("/admin/dashboard");
     revalidatePath("/admin/messages");
-    revalidateTag("admin-unified-data");
+    revalidateTag("admin-unified-data", "max");
   } catch (error) {
     console.error("Failed to toggle read status:", error);
     throw error;
@@ -31,7 +31,7 @@ export async function toggleImportant(id: number, status: boolean): Promise<void
     await MessageRepository.toggleImportant(id, status);
     revalidatePath("/admin/dashboard");
     revalidatePath("/admin/messages");
-    revalidateTag("admin-unified-data");
+    revalidateTag("admin-unified-data", "max");
   } catch (error) {
     console.error("Failed to toggle important status:", error);
     throw error;
@@ -44,7 +44,7 @@ export async function deleteMessage(id: number): Promise<{ success: boolean; err
     await MessageRepository.delete(id);
     revalidatePath("/admin/dashboard");
     revalidatePath("/admin/messages");
-    revalidateTag("admin-unified-data");
+    revalidateTag("admin-unified-data", "max");
     return { success: true };
   } catch (error) {
     console.error("Failed to delete message:", error);
@@ -64,7 +64,7 @@ export async function deleteMessages(ids: number[]): Promise<{ success: boolean;
     await MessageRepository.deleteMany(ids);
     revalidatePath("/admin/dashboard");
     revalidatePath("/admin/messages");
-    revalidateTag("admin-unified-data");
+    revalidateTag("admin-unified-data", "max");
     return { success: true };
   } catch (error) {
     console.error("Failed to delete messages:", error);

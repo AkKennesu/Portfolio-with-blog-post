@@ -37,7 +37,9 @@ export function useDebouncedCallback<Args extends unknown[], R = void>(
     delay: number = 300
 ): (...args: Args) => void {
     const callbackRef = useRef(callback)
-    callbackRef.current = callback
+    useEffect(() => {
+        callbackRef.current = callback
+    })
 
     const timerRef = useRef<NodeJS.Timeout | null>(null)
 

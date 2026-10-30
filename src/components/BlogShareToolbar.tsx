@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useCallback } from "react"
 import { Share2, Check, Copy, Twitter, Linkedin } from "lucide-react"
 
 interface BlogShareToolbarProps {
@@ -10,17 +10,14 @@ interface BlogShareToolbarProps {
 
 export function BlogShareToolbar({ title, url }: BlogShareToolbarProps) {
     const [copied, setCopied] = useState(false)
-    const [currentUrl, setCurrentUrl] = useState(url || "")
 
-    useEffect(() => {
-        if (!url && typeof window !== "undefined") {
-            setCurrentUrl(window.location.href)
-        }
+    const getShareUrl = useCallback(() => {
+        return url || (typeof window !== "undefined" ? window.location.href : "")
     }, [url])
 
     const copyToClipboard = async () => {
         try {
-            await navigator.clipboard.writeText(currentUrl || window.location.href)
+            await navigator.clipboard.writeText(getShareUrl())
             setCopied(true)
             setTimeout(() => setCopied(false), 2000)
         } catch {
@@ -31,13 +28,13 @@ export function BlogShareToolbar({ title, url }: BlogShareToolbarProps) {
     const shareTwitter = () => {
         const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
             title
-        )}&url=${encodeURIComponent(currentUrl || window.location.href)}`
+        )}&url=${encodeURIComponent(getShareUrl())}`
         window.open(twitterUrl, "_blank", "noopener,noreferrer")
     }
 
     const shareLinkedIn = () => {
         const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(
-            currentUrl || window.location.href
+            getShareUrl()
         )}`
         window.open(linkedInUrl, "_blank", "noopener,noreferrer")
     }

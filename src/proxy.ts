@@ -7,7 +7,7 @@ const SECRET_KEY = new TextEncoder().encode(
   RAW_SECRET || "development-only-fallback-secret-key-32-chars-min"
 );
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Clone headers to forward the resolved pathname reliably to Server Components

@@ -41,7 +41,7 @@ export async function updateSettings(formData: FormData): Promise<{ success: boo
     revalidatePath("/");
     revalidatePath("/admin/settings");
     revalidatePath("/admin/dashboard");
-    revalidateTag("admin-unified-data");
+    revalidateTag("admin-unified-data", "max");
     return { success: true };
   } catch (error) {
     console.error("Failed to update settings:", error);

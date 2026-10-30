@@ -63,6 +63,7 @@ next-env.d.ts
 /coverage/
 *.lcov
 .nyc_output
+AGENTS.md
 
 # 6. Logs & Debugging
 *.log
